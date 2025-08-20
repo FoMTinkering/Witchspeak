@@ -46,7 +46,7 @@ known_sentences = {
     "Summon Rain Spell":
     (
         "*('.i8.3/.i^2a)-*(.7.3/.'8)-(/.i^2a)",
-        12
+        11
     ),
 
     "Growth Spell":
