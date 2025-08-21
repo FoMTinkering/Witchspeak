@@ -283,12 +283,16 @@ class ComplexGlyph(Glyph):
         if word[0] == "'":
             self.pixels = [(-6, 0)]
             word = word[1:]
-        secondary_branch = word[word.index(self.vert_char) + 1 :]
-        if (secondary_branch[0] in ("2", "4", "6")) and (secondary_branch[1] == "b"):
+        vert_char_idx = word.index(self.vert_char)
+        secondary_branch = word[vert_char_idx+1:]
+        top_branch, bottom_branch = self.post_branching(secondary_branch)
+        high_top_branch = set(top_branch).intersection({"2", "4", "6"}) != set()
+        low_bottom_branch = set(bottom_branch).intersection({"b"}) != set()
+        if high_top_branch and low_bottom_branch:
             raise Exception("branch error")
-        elif secondary_branch[0] in ("2", "4", "6"):
+        elif high_top_branch:
             branch_spacings = (3, 2)
-        elif secondary_branch[1] == "b":
+        elif low_bottom_branch:
             branch_spacings = (4, 2)
         else:
             branch_spacings = (3, 3)
@@ -297,7 +301,7 @@ class ComplexGlyph(Glyph):
         instant = False  # modifier to ignore horizontal spacing
 
         branched = False
-        for ch in word[1:]:
+        for ch in word[1:vert_char_idx]:
             # instant character check
             if ch == "i":
                 instant = True
@@ -310,33 +314,89 @@ class ComplexGlyph(Glyph):
                 ]
                 position += np.array([0, default_spacing])
 
-            # vertical branch check
-            if ch == self.vert_char:
-                branched = True
-                self.pixels += [
-                    position + p
-                    for p in glossary["spacings"][self.vert_char](
-                        branch_spacings[1] + 1
-                    )
-                ]
-                # type of position offset depends on what the branching character was
-                branch_offset = glossary["spacings"][self.vert_char](
-                    branch_spacings[1] + 1
-                )[-1]
-                position += branch_offset
+            # character draw
+            self.pixels += [position + p for p in glossary["characters"][ch]]
+        if not instant:
+            self.pixels += [
+                position + p for p in glossary["spacings"]["."](default_spacing + 1)
+            ]
+            position += np.array([0,default_spacing])
+            
+        pre_branch_position = np.array([*position])
+        # vertical branch
+        self.pixels += [
+            position + p
+            for p in glossary["spacings"][self.vert_char](
+                branch_spacings[1] + 1
+            )
+        ]
+        # type of position offset depends on what the branching character was
+        branch_offset = glossary["spacings"][self.vert_char](
+            branch_spacings[1] + 1
+        )[-1]
+        position += branch_offset
+        self.pixels += [
+            position + p for p in glossary["spacings"]["."](default_spacing + 1)
+        ]
+        position += np.array([0,default_spacing])
+
+        instant = False
+        for ch in top_branch:
+            if ch == "i":
+                instant = True
+                continue
+            if instant:
+                instant = False
+            else:
                 self.pixels += [
                     position + p for p in glossary["spacings"]["."](default_spacing + 1)
                 ]
                 position += np.array([0, default_spacing])
-                continue
 
             # character draw
             self.pixels += [position + p for p in glossary["characters"][ch]]
-            if branched:
-                position -= branch_offset
-                position -= np.array([0, default_spacing * 2])
+
+        position = pre_branch_position
+        instant = False
+        for ch in bottom_branch:
+            if ch == "i":
+                instant = True
+                continue
+            if instant:
+                instant = False
+            else:
+                self.pixels += [
+                    position + p for p in glossary["spacings"]["."](default_spacing + 1)
+                ]
+                position += np.array([0, default_spacing])
+
+            # character draw
+            self.pixels += [position + p for p in glossary["characters"][ch]]
+
         self.length = max(self.pixels, key=lambda k: k[1])[1] + 1
 
+    def post_branching(self, chars):
+        brackets = {"[", "]"}
+        if set(chars).intersection(brackets) not in [set(), brackets]:
+            raise Exception("invalid branching : invalid brackets")
+        if set(chars).intersection(brackets) == set():
+            if len(chars) != 2:
+                raise Exception("invalid branching : missing brackets")
+            else:
+                return list(chars)
+        else:
+            before = chars[:chars.index("[")]
+            inside = chars[chars.index("[")+1:chars.index("]")]
+            after = chars[chars.index("]")+1:]
+            if ((len(before) == 0) + (len(inside) == 0) + (len(after) == 0)) > 1:
+                raise Exception("invalid branching : needs more characters")
+            if len(before) == 0:
+                if after[0] == "[":
+                    return inside, after[1:-1]
+                else:
+                    return inside, after
+            else:
+                return before, inside
 
 if __name__ == "__main__":
     from glyphdata import known_sentences
@@ -363,3 +423,7 @@ if __name__ == "__main__":
 
     # vertical spacing varies depending on characters in complex glyphs
     show_sentence("(.i^1b)-(.i^2a)-(.i^4a)-(.i^6a)")
+
+    # although no example exists in game, complex glyphs can have multiple characters post-branching
+    show_sentence("(.8^[.61][ac]/.54|3[bc])")
+
