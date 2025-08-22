@@ -1,0 +1,84 @@
+#top-half-container {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+}
+
+#canvas-container {
+    overflow:clip;
+    background-color: black;
+    left:0;
+    display: inline-flex;
+}
+
+canvas {
+    width:100vw;
+    height:20%;
+    position: relative;
+}
+
+#input-container {
+    background-color: rgb(15, 10, 36);
+}
+
+#input {
+    position: relative;
+    text-align: center;
+    font-family:'Consolas';  
+    color:aliceblue;
+    font-size:120%;
+    width:-webkit-fill-available;
+    background-clip: text;
+    height:20%;
+    resize: none;
+    background-attachment:local;
+    border: none;
+}
+
+#input:focus {
+    outline: none !important;
+}
+
+#bottom-container {
+    position: absolute;
+    width:100%;
+    left:0;
+    top:50%;
+    font-family:'Consolas';
+    background-color: rgb(15, 10, 36);
+}
+
+#color-selector-table {
+    color:aliceblue;
+    display:block;
+    width: auto;
+    overflow-x: auto;
+    height: 140px;
+    overflow-y: hidden;
+}
+
+#spacings-color-selector-table {
+    color:aliceblue;
+    display:block;
+    width: min-content;
+    place-self: center;
+    overflow-x: auto;
+    height: 140px;
+    overflow-y: hidden;
+}
+
+input[type="color"] {
+  background-color:rgba(0,0,0,0);
+  position:relative;
+  top:-90px;
+  width:90px;
+  height:90px;
+  cursor:pointer;
+  opacity: 0;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  
+}
+
