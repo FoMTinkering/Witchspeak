@@ -1,5 +1,26 @@
 
 
+var use_shading = false;
+
+function onChangeColorSetting(obj) {
+    var color_setting = obj.value
+    obj.blur();
+
+    if(color_setting != "custom") {
+        document.getElementById("custom-color").style.width = "2px";
+    }
+    else {
+        var setting = document.getElementById("custom-color");
+        setting.style.visibility = "visible";
+        setting.style.width = "30px";
+    }
+}
+
+function onShowShadingChange(obj) {
+    use_shading = obj.checked;
+    attemptCompute(true);
+}
+
 
 function vMult(v1, v2) {
     var vres = [];
@@ -83,7 +104,7 @@ const colourCode = {
         "7": "0800ff",
         "8": "0800ff",
         "9": "00a0ff",
-        "A":"00a0ff",
+        "A": "00a0ff",
         "B": "00a0ff",
         "C": "00a0ff",
         "a": "ff0000",
@@ -493,7 +514,7 @@ function attemptCompute(ignore=false) {
    var sentence = ""+input.innerHTML;
     if (!checkValid(sentence))
         return "invalid sentence";
-    var reading = new Reading(sentence, 10, false); // true if shading checkbox is ticked
+    var reading = new Reading(sentence, 10, use_shading); // true if shading checkbox is ticked
     grid = reading.grid;
     clearGrid();
     if (grid.length == 0)
@@ -569,6 +590,14 @@ input.addEventListener("keydown", (e) => {
     }
 })
 
+color_setting = document.getElementById("custom-color");
+color_setting.addEventListener('transitionend', () => {
+    color_setting = document.getElementById("custom-color");
+    if(color_setting.style.width == "2px") {
+        color_setting.style.visibility = "hidden";
+    }
+});
+
 // create the default glyph
 attemptCompute(true);
 
@@ -588,6 +617,7 @@ for (cs of csList) {
     // create invisible colorswatch over the canvas
     colorswatch = document.createElement("input");
     colorswatch.id = "colorswatch-"+ch;
+    colorswatch.setAttribute("class", "color-swatch");
     colorswatch.setAttribute("type", "color");
     colorswatch.setAttribute("value", "#"+colourCode.characters[ch]);
     colorswatch.setAttribute("oninput", "updateColors(this)");

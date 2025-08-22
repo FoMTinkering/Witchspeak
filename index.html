@@ -3,6 +3,19 @@
 </head>
 <body onload="">
     <div id="top-half-container">
+        <div id="checkbox-container">
+            <!-- <input id="checkbox-swatch" type="color" value="#ff0000" /> -->
+            <label id="checkbox-label" for="use-color">Color Options</label><br>
+            <select name="use-color" id="use-color" onchange="onChangeColorSetting(this)">
+                <option value="default">Default</option>
+                <option value="glyph">Glyph</option>
+                <option value="pixel">Pixel</option>
+                <option value="custom">Custom</option>
+            </select>
+            <input type="color" id="custom-color" value="#ff0000">
+            <input type="checkbox" id="add-shading" name="add-shading" style="margin-left:30px;" onchange="onShowShadingChange(this)">
+            <label id="checkbox-label" for="add-shading">Render Shading</label><br>
+        </div>
         <div id="canvas-container">
             <canvas id="grid"></canvas>
         </div>
