@@ -6,15 +6,16 @@
         <div id="checkbox-container">
             <!-- <input id="checkbox-swatch" type="color" value="#ff0000" /> -->
             <label id="checkbox-label" for="use-color">Color Options</label><br>
-            <select name="use-color" id="use-color" onchange="onChangeColorSetting(this)">
+            <select name="use-color" id="use-color" name="use-color" onchange="onChangeColorSetting(this)">
                 <option value="default">Default</option>
                 <option value="glyph">Glyph</option>
                 <option value="pixel">Pixel</option>
                 <option value="custom">Custom</option>
             </select>
-            <input type="color" id="custom-color" value="#ff0000">
-            <input type="checkbox" id="add-shading" name="add-shading" style="margin-left:30px;" onchange="onShowShadingChange(this)">
-            <label id="checkbox-label" for="add-shading">Render Shading</label><br>
+            <input type="color" id="custom-color" value="#ffffff">
+            <label id="checkbox-label" for="add-shading" style="margin-left:10px;">Render Shading</label><br>
+            <input type="checkbox" id="add-shading" name="add-shading" onchange="onShowShadingChange(this)">
+            <input type="range" id="shade-amount" name="shade-amount" min="-1" max="1" step="0.05" oninput="onChangeShadeValue(this)"/>
         </div>
         <div id="canvas-container">
             <canvas id="grid"></canvas>

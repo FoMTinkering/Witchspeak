@@ -16,10 +16,11 @@
     font-family:'Consolas';  
     color:aliceblue;
     padding-left: 5px;
-    padding-right: 5px;
+    padding-right: 3px;
 }
 
 #use-color {
+    z-index: 1;
     font-family:'Consolas';  
     background-color: rgb(15, 10, 36);
     color:aliceblue;
@@ -27,14 +28,60 @@
 
 #custom-color {
     max-height: 20px;
+    height: 0px;
     width: 0px;
     background-color: rgb(15, 10, 36);
     border: none;
-    padding-left: 5px;
+    
+    margin-top: 1px;
+    margin-left: 5px;
     visibility: hidden;
+    opacity: 0;
 
-    transition: 250ms all linear;
+    transition: 
+        all 200ms,
+        opacity 100ms;
 }
+
+input[type="range"]
+{
+    background-color: transparent;
+    opacity: 0;
+    visibility: hidden;
+    width: 0px;
+
+    transition: 
+        all 200ms,
+        opacity 200ms;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    background: rgb(176, 167, 212);
+    height: 3px;
+}
+
+input[type="range"]::-moz-range-track {
+    background: rgb(176, 167, 212);
+    height: 3px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 15px;
+    width: 15px;
+    background: white;
+    margin-top: -6px;
+    border-radius: 50%;
+}
+
+input[type="range"]::-moz-range-thumb {
+    height: 15px;
+    width: 15px;
+    background: white;
+    margin-top: -6px;
+    border-radius: 50%;
+}
+
 
 #canvas-container {
     overflow:clip;
@@ -67,8 +114,9 @@ canvas {
     border: none;
 }
 
-#input:focus {
-    outline: none !important;
+:focus {
+    outline-color: rgb(176, 167, 212);  
+    outline-style: solid;
 }
 
 #bottom-container {
@@ -111,6 +159,15 @@ canvas {
 input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
   
+}
+
+input[type="range"] {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+input[type="range"]:focus {
+ outline: none;
 }
 
 html {

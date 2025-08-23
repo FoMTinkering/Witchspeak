@@ -1,23 +1,48 @@
-
-
 var use_shading = false;
 
 function onChangeColorSetting(obj) {
     var color_setting = obj.value
     obj.blur();
 
+    var setting = document.getElementById("custom-color");
     if(color_setting != "custom") {
-        document.getElementById("custom-color").style.width = "2px";
+        
+        setting.style.width = "0px";
+        setting.style.height = "0px";
+        colorCode.mainlineColor = "ffffff";
     }
     else {
-        var setting = document.getElementById("custom-color");
         setting.style.visibility = "visible";
-        setting.style.width = "30px";
+        setting.style.width = "25px";
+        setting.style.height = "18px";
+        setting.style.opacity = "1";
+
+        var new_color = setting.value.substring(1);
+        [cmaps.custom.colors[0], cmaps.custom.colors[1]] = [new_color, new_color];
+        colorCode.mainlineColor = new_color;
     }
+    attemptCompute(true);
 }
 
 function onShowShadingChange(obj) {
+    var slider = document.getElementById("shade-amount");
+    if(obj.checked) {
+        slider.style.visibility = "visible";
+        slider.style.width = "100px";
+        slider.style.opacity = "1";
+    }
+    else
+    {
+        slider.style.width = "0px";
+        slider.style.opacity = "0";
+    }
     use_shading = obj.checked;
+    attemptCompute(true);
+}
+
+function onChangeShadeValue(obj)
+{
+    colorCode.shadingAmount = obj.value;
     attemptCompute(true);
 }
 
@@ -71,10 +96,8 @@ function findMax(arr) {
             if (typeof(arr[row][col]) == "number")
                 m = Math.max(m, arr[row][col]);
     }
-    if (m>0)
-        return m;
-    else
-        return null;
+    
+    return m;
 }
 
 function mixColor(colorA, colorB, mixFactor) {
@@ -107,7 +130,7 @@ function evaluateCmap(cmap, v) {
 }
 
 function cmapPropagate(arr, cmap) {
-    range = findMax(arr);
+    range = findMax(arr)+1;
     for (var row = 0; row < arr.length; row++) {
         for (var col = 0; col < arr[row].length; col++) {
             if (typeof(arr[row][col]) == "number") {
@@ -173,7 +196,8 @@ const colorCode = {
     },
     "spacings": {"^": "ff3dff", "|": "ff3dff", ".": "ffffff"},
     "shadingAmount":0.5,
-    "backgroundColor":"000000"
+    "backgroundColor":"000000",
+    "mainlineColor":"ffffff"
 };
 
 const cmaps = {
@@ -239,6 +263,9 @@ class Reading {
             this.grid = cmapPropagate(this.grid, cmaps.rainbow);
         else if (this.colorType == "custom")
             this.grid = cmapPropagate(this.grid, cmaps.custom);
+
+        if (this.shading)
+            this.shadeGlyphs();
     }
 
     makeGlyphList() {
@@ -284,8 +311,6 @@ class Reading {
         this.grid = Array.from(Array(2*height+1), () => new Array(this.length).fill(colorCode.backgroundColor));
         if (cursor != 0) {
             [...Array(cursor).keys()].forEach((col)=>{
-                if (this.shading & (this.grid[this.h-1][col] == colorCode.backgroundColor))
-                    this.grid[this.h-1][col] = darken("ffffff", colorCode.shadingAmount);
                 this.grid[this.h][col] = "ffffff";
             });
         }
@@ -302,8 +327,6 @@ class Reading {
                     c = pairingNumber;
                 }
                 [x,y] = vAdd(p,Array(this.h,cursor));
-                if (this.shading & (this.grid[x-1][y] == colorCode.backgroundColor))
-                    this.grid[x-1][y] = darken(c, colorCode.shadingAmount);
                 this.grid[x][y] = c;
             });
             topBranchLength = topGlyph.length;
@@ -320,8 +343,6 @@ class Reading {
                     c = pairingNumber;
                 }
                 [x,y] = vAdd(p,Array(this.h,cursor));
-                if (this.shading & (this.grid[x-1][y] == colorCode.backgroundColor)) 
-                    this.grid[x-1][y] = darken(c, colorCode.shadingAmount);
                 this.grid[x][y] = c;
             });
             bottomBranchLength = bottomGlyph.length;
@@ -334,13 +355,72 @@ class Reading {
                 var end = 0;
             [...Array(cursor-end-oldcursor).keys()].forEach((c)=>{
                 var col = c+oldcursor;
-                if (this.shading & (this.grid[this.h-1][col] == colorCode.backgroundColor))
-                    this.grid[this.h-1][col] = darken("ffffff", colorCode.shadingAmount);
-                this.grid[this.h][col] = "ffffff";
+                this.grid[this.h][col] = colorCode.mainlineColor;
             })
         }   
     }
 
+    shadeGlyphs() {
+        var x,y; // can't unpack vecs into grid coordinates so I use these instead
+        var topGlyph, bottomGlyph, split;
+        var topBranchLength, bottomBranchLength;
+        var oldcursor;
+
+        var cursor = this.start;
+        if (cursor != 0) {
+            [...Array(cursor).keys()].forEach((col)=>{
+                if (this.shading & (this.grid[this.h-1][col] == colorCode.backgroundColor))
+                    this.grid[this.h-1][col] = darken("ffffff", colorCode.shadingAmount);
+            });
+        }
+        for (var pairingNumber=0; pairingNumber<this.glyphPairingsList.length; pairingNumber++) {
+            [topGlyph, bottomGlyph, split] = this.glyphPairingsList[pairingNumber];
+            oldcursor = cursor;
+
+            [...Array(topGlyph.pixels.length).keys()].forEach(i => {
+                var p = topGlyph.pixels[i];
+                var c = topGlyph.colors[i];
+                if (c == undefined)
+                    return;
+                else if (c == 0) {
+                    c = pairingNumber;
+                }
+                [x,y] = vAdd(p,Array(this.h,cursor));
+                if (this.shading & (this.grid[x-1][y] == colorCode.backgroundColor))
+                    this.grid[x-1][y] = darken(this.grid[x][y], colorCode.shadingAmount);
+            });
+            topBranchLength = topGlyph.length;
+
+            if(!split & (topGlyph.length*bottomGlyph.length != 0))
+                cursor += defaultSpacing;
+
+            [...Array(bottomGlyph.pixels.length).keys()].forEach(i => {
+                var p = bottomGlyph.pixels[i];
+                var c = bottomGlyph.colors[i];
+                if (c == undefined)
+                    return;
+                else if (c == 0) {
+                    c = pairingNumber;
+                }
+                [x,y] = vAdd(p,Array(this.h,cursor));
+                if (this.shading & (this.grid[x-1][y] == colorCode.backgroundColor)) 
+                    this.grid[x-1][y] = darken(this.grid[x][y] = c, colorCode.shadingAmount);
+            });
+            bottomBranchLength = bottomGlyph.length;
+
+            cursor = Math.max(oldcursor + topBranchLength, cursor + bottomBranchLength);
+            
+            if (pairingNumber == (this.glyphPairingsList.length-1))
+                var end = Math.abs(this.end);
+            else
+                var end = 0;
+            [...Array(cursor-end-oldcursor).keys()].forEach((c)=>{
+                var col = c+oldcursor;
+                if (this.shading & (this.grid[this.h-1][col] == colorCode.backgroundColor))
+                    this.grid[this.h-1][col] = darken(colorCode.mainlineColor, colorCode.shadingAmount);
+            })
+        }   
+    }
 }
 
 
@@ -733,14 +813,25 @@ input.addEventListener("keydown", (e) => {
 color_setting = document.getElementById("custom-color");
 color_setting.addEventListener('transitionend', () => {
     color_setting = document.getElementById("custom-color");
-    if(color_setting.style.width == "2px") {
+    if(color_setting.style.width == "0px" && color_setting.style.height == "0px") {
         color_setting.style.visibility = "hidden";
+        color_setting.style.opacity = "0";
     }
 });
 color_setting.addEventListener("input", (e) => {
-    [cmaps.custom.colors[0], cmaps.custom.colors[1]] = [color_setting.value.substring(1), color_setting.value.substring(1)];
+    var new_color = color_setting.value.substring(1);
+    [cmaps.custom.colors[0], cmaps.custom.colors[1]] = [new_color, new_color];
+    colorCode.mainlineColor = new_color;
     attemptCompute(true);
 })
+
+var shader_setting = document.getElementById("shade-amount");
+shader_setting.addEventListener('transitioned', () => {
+    if(shader_setting.opacity == "0")
+    {
+        shader_setting.visibility = "hidden";
+    }
+});
 
 // create the default glyph
 attemptCompute(true);
