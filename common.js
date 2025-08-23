@@ -1,3 +1,6 @@
+// temporary variable, should eventually be replaced with combobox (on page creation below)
+var activeColormap = "peachy";
+
 var use_shading = false;
 
 function onChangeColorSetting(obj) {
@@ -5,21 +8,26 @@ function onChangeColorSetting(obj) {
     obj.blur();
 
     var setting = document.getElementById("custom-color");
-    if(color_setting != "custom") {
-        
-        setting.style.width = "0px";
-        setting.style.height = "0px";
-        colorCode.mainlineColor = "ffffff";
-    }
-    else {
-        setting.style.visibility = "visible";
-        setting.style.width = "25px";
-        setting.style.height = "18px";
-        setting.style.opacity = "1";
+    switch (color_setting) {
+        case "custom":
+            setting.style.visibility = "visible";
+            setting.style.width = "25px";
+            setting.style.height = "18px";
+            setting.style.opacity = "1";
 
-        var new_color = setting.value.substring(1);
-        [cmaps.custom.colors[0], cmaps.custom.colors[1]] = [new_color, new_color];
-        colorCode.mainlineColor = new_color;
+            var new_color = setting.value.substring(1);
+            [cmaps.custom.colors[0], cmaps.custom.colors[1]] = [new_color, new_color];
+            colorCode.mainlineColor = new_color;
+            break;
+        case "pixel":
+            setting.style.width = "0px";
+            setting.style.height = "0px";
+            colorCode.mainlineColor = evaluateCmap(cmaps[activeColormap], 0);
+            break;
+        default:
+            setting.style.width = "0px";
+            setting.style.height = "0px";
+            colorCode.mainlineColor = "ffffff";
     }
     attemptCompute(true);
 }
@@ -72,7 +80,9 @@ function darken(color, value) {
         var normal = (parseInt(c,16)/255);
         v += 0.25*(1+3*(1-0.75*normal)*value);
     });
-    v = v/3;
+    if (v<0)
+        v = 0;
+    v = (v/3);
     [...Array(3).keys()].forEach(i=>{
         c = [R,G,B][i];
         bgC = [bgR, bgG, bgB][i]
@@ -203,25 +213,41 @@ const colorCode = {
 };
 
 const cmaps = {
+    "default": {
+        "values": [0, 1],
+        "colors": ["555555","ffffff"]
+    },
+    "peachy": {
+        "values": [0, 0.25, 0.5, 0.75, 1],
+        "colors": ["d096e2","ffc6d9","ffe1c6","fff7ae","f6ae42"]
+    },
+    "tea": {
+        "values": [0, 0.25, 0.5, 0.75, 1],
+        "colors": ["d3fad6","d1efb5","edeba0","c3c48d","928c6f"]
+    },
+    "tropical": {
+        "values": [0, 0.25, 0.5, 0.75, 1],
+        "colors" : ["9cfffa","acf39d","b0c592","a97c73","af3e4d"]
+    },
+    "gloomy": {
+        "values": [0, 0.25, 0.5, 0.75, 1],
+        "colors" : ["533747","5f506b","6a6b83","76949f","86bbbd"]
+    },
+    "bubblegum": {
+        "values": [0, 0.5, 0.75, 1],
+        "colors": ["d84797","d2fdff","3abeff","26ffe6"]
+    },
+    "magma" : {
+        "values": [0, 0.2, 0.55, 0.75, 1],
+        "colors": ["524cff","8447ff","d972ff","ffb2e6","ecbe4a"]
+    },
     "rainbow": {
         "values": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-        "colors": [
-            "ff0000",
-            "ff9900",
-            "ccff00",
-            "33ff00",
-            "00ff66",
-            "00ffff",
-            "0066ff",
-            "3300ff",
-            "cc00ff",
-            "ff0099",
-            "ff0000"
-        ]
+        "colors": ["ff0000","ff9900","ccff00","33ff00","00ff66","00ffff","0066ff","3300ff","cc00ff","ff0099","ff0000"]
     },
     "custom": {
         "values": [0, 1],
-        "colors": ["ffffff", "ffffff"]
+        "colors": ["ffffff","ffffff"]
     }
 }
 
@@ -230,12 +256,14 @@ var defaultSpacing = 3;
 glossary["characters"]["."] = glossary["spacings"]["."](defaultSpacing);
 
 class Reading {
-    constructor(sentence, maxGlyphHeight = 11, shading = false, colorType="default") {
+    constructor(sentence, maxGlyphHeight = 11, shading = false, colorType="default", cmap = "default") {
         this.sentence = sentence;
         this.h = maxGlyphHeight;
         this.errorLog = null;
         this.shading = shading;
         this.colorType = colorType;
+        this.cmap = cmap;
+        this.range = null; // only used to compute glyph-display shading
         try {
             this.makeGlyphList();
         } catch (err) {
@@ -261,11 +289,12 @@ class Reading {
         // +1 to length to allow the c character to be placed at the end
         this.length += this.start+1;
         this.readingToGlyph();
-        if (this.colorType == "glyph")
-            this.grid = cmapPropagate(this.grid, cmaps.rainbow);
+        if (this.colorType == "glyph") {
+            this.range = findMax(this.grid);
+            this.grid = cmapPropagate(this.grid, cmaps[this.cmap]);
+        }
         else if (this.colorType == "custom")
             this.grid = cmapPropagate(this.grid, cmaps.custom);
-
         if (this.shading)
             this.shadeGlyphs();
     }
@@ -284,8 +313,8 @@ class Reading {
                 var [topWord, bottomWord] = currentWords;
             else
                 var [topWord, bottomWord] = [currentWords[0], ""];
-            var topGlyph = new Glyph(topWord, false, this.colorType);
-            var bottomGlyph = new Glyph(bottomWord, true, this.colorType);
+            var topGlyph = new Glyph(topWord, false, this.colorType, this.cmap);
+            var bottomGlyph = new Glyph(bottomWord, true, this.colorType, this.cmap);
             glyphPairingsList.push([topGlyph, bottomGlyph, split]);
         });
         return glyphPairingsList;
@@ -387,9 +416,24 @@ class Reading {
                 else if (c == 0) {
                     c = pairingNumber;
                 }
+                if (typeof(c) == "number") {
+                    switch (this.colorType) {
+                        case "glyph":
+                            c = evaluateCmap(cmaps[this.cmap], c/this.range);
+                            break;
+                        case "custom":
+                            c = evaluateCmap(cmaps.custom, c);
+                            break;
+                        case "pixels":
+                            c = evaluateCmap(cmaps[this.cmap], c/bottomGlyph.pixels.length);
+                            break;
+                        default:
+                            throw new Error("failed to find a valid colorType while shading");
+                    }
+                } 
                 [x,y] = vAdd(p,Array(this.h,cursor));
                 if (this.shading & (this.grid[x-1][y] == colorCode.backgroundColor))
-                    this.grid[x-1][y] = darken(this.grid[x][y], colorCode.shadingAmount);
+                    this.grid[x-1][y] = darken(c, colorCode.shadingAmount);
             });
             topBranchLength = topGlyph.length;
 
@@ -404,9 +448,24 @@ class Reading {
                 else if (c == 0) {
                     c = pairingNumber;
                 }
+                if (typeof(c) == "number") {
+                    switch (this.colorType) {
+                        case "glyph":
+                            c = evaluateCmap(cmaps[this.cmap], c/this.range);
+                            break;
+                        case "custom":
+                            c = evaluateCmap(cmaps.custom, c);
+                            break;
+                        case "pixels":
+                            c = evaluateCmap(cmaps[this.cmap], c/bottomGlyph.pixels.length);
+                            break;
+                        default:
+                            throw new Error("failed to find a valid colorType while shading");
+                    }
+                }
                 [x,y] = vAdd(p,Array(this.h,cursor));
                 if (this.shading & (this.grid[x-1][y] == colorCode.backgroundColor)) 
-                    this.grid[x-1][y] = darken(this.grid[x][y] = c, colorCode.shadingAmount);
+                    this.grid[x-1][y] = darken(c, colorCode.shadingAmount);
             });
             bottomBranchLength = bottomGlyph.length;
 
@@ -427,11 +486,12 @@ class Reading {
 
 
 class Glyph {
-    constructor(word, flip=false, colorType="default") {
+    constructor(word, flip=false, colorType="default", cmap="default") {
         this.word = word;
         this.length = 0;
         this.vertChar = null;
         this.colorType = colorType;
+        this.cmap = cmap;
         if (flip)
             this.flip = Array(-1,1);
         else
@@ -447,7 +507,7 @@ class Glyph {
             this.pixels.push(vMult(p,this.flip))
         });
         if (this.colorType == "pixel")
-            this.colors = cmapPropagate([this.colors], cmaps.rainbow)[0];
+            this.colors = cmapPropagate([this.colors], cmaps[this.cmap])[0];
     }
 
     glyphType() {
@@ -735,7 +795,7 @@ function attemptCompute(ignore=false) {
    var sentence = ""+input.innerHTML;
     if (!checkValid(sentence))
         return "invalid sentence";
-    var reading = new Reading(sentence, 10, use_shading, useColor.value); // true if shading checkbox is ticked
+    var reading = new Reading(sentence, 10, use_shading, useColor.value, activeColormap); // replace activeColormap with cmap selector combobox value
     grid = reading.grid;
     clearGrid();
     if (grid.length == 0)
