@@ -75,18 +75,18 @@ function darken(color, value) {
     var [R,G,B] = [color.substring(0,2), color.substring(2,4), color.substring(4,6)];
     var [bgR, bgG, bgB] = [colorCode.backgroundColor.substring(0,2), colorCode.backgroundColor.substring(2,4), colorCode.backgroundColor.substring(4,6)];
     var newColor = "";
-    var v = 1;
+    var v = 0;
     [R,G,B].forEach(c=>{
         var normal = (parseInt(c,16)/255);
         v += 0.25*(1+3*(1-0.75*normal)*value);
     });
     if (v<0)
         v = 0;
-    v = (v/3);
+    v = (v/6);
     [...Array(3).keys()].forEach(i=>{
         c = [R,G,B][i];
         bgC = [bgR, bgG, bgB][i]
-        c = Math.round((parseInt(c,16)*v+parseInt(bgC,16))/2).toString(16);
+        c = Math.round(parseInt(c,16)*v+parseInt(bgC,16)*(1-v)).toString(16);
         if (c.length == 1)
             c = "0"+c;
         newColor += c;
@@ -218,7 +218,7 @@ const cmaps = {
         "colors": ["555555","ffffff"]
     },
     "peachy": {
-        "values": [0, 0.25, 0.5, 0.75, 1],
+        "values": [0, 0.15, 0.35, 0.75, 1],
         "colors": ["d096e2","ffc6d9","ffe1c6","fff7ae","f6ae42"]
     },
     "tea": {
