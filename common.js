@@ -70,7 +70,7 @@ function darken(color, value) {
     var v = 1;
     [R,G,B].forEach(c=>{
         var normal = (parseInt(c,16)/255);
-        v += 0.25*(1+3*(1-normal)*value);
+        v += 0.25*(1+3*(1-0.75*normal)*value);
     });
     v = v/3;
     [...Array(3).keys()].forEach(i=>{
@@ -584,7 +584,7 @@ class Glyph {
                     position = vAdd(position, Array(0,defaultSpacing));
                 }
                 glossary.characters[ch].forEach((p) => {
-                    colors.push(colorCode.characters[ch]);
+                    addColor(ch);
                     pixels.push(vAdd(position,p));
                 });
             });
