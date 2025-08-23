@@ -755,6 +755,65 @@ class Glyph {
     
 }
 
+function addCharacter(button) {
+    var ch = button.id.substring(7) // remove "button-"
+    if (!continueLastGlyph) {
+        buttonGlyphs.push([".", ch]);
+        continueLastGlyph = true;
+    }
+    else {
+        var currentGlyph = buttonGlyphs[buttonGlyphs.length-1]; // [".", ch, ...]
+        var lastChar = currentGlyph[currentGlyph.length-1]; // ...
+        var hasObject = false;
+        currentGlyph.forEach(ch => {
+            if (typeof(ch) == "object")
+                hasObject = true;
+        })
+        if (["|", "^"].includes(lastChar) & !hasObject) {
+            currentGlyph.push([[ch]])
+            buttonBranch = true; // needs to be set to false before switching again
+        } else if (typeof(lastChar) == "object") {
+            if (["|", "^"].includes(ch))
+                throw new Error("cannot make glyph with more than two branches");
+            if (lastChar.length == 1) {
+                if (buttonBranch) 
+                    lastChar[0].push(ch);
+                else 
+                    lastChar.push([ch]);
+            }
+        } else {
+            currentGlyph.push(ch);
+        }
+    }
+    processButtonGlyph();
+}
+
+function processButtonGlyph() {
+    var glyphText = ""
+    buttonGlyphs.forEach(glyph => {
+        glyphText += "("
+        glyph.forEach(ch => {
+            if (typeof(ch) == "object") {
+                ch.forEach(branch => {
+                    if (branch.length == 1)
+                        glyphText += branch[0];
+                    else {
+                        glyphText += "[";
+                        branch.forEach(subCh => {
+                            glyphText += subCh;
+                        });
+                        glyphText += "]";
+                    }
+                })
+            } else {
+                glyphText += ch;
+            }
+        });
+        glyphText += ")-";
+    });
+    input.defaultValue = glyphText;
+    attemptCompute(true);
+}
 
 
 function drawPixels() {
@@ -898,11 +957,23 @@ shader_setting.addEventListener('transitioned', () => {
 // create the default glyph
 attemptCompute(true);
 
+
+// set buttonType to color select, this should be a checkbox or switch or something
+var buttonType = "color select";
+
+// create empty list of glyphs determined by button presses 
+// these will be parsed if the buttonType is "glyph input"
+const buttonGlyphs = [];
+var continueLastGlyph = false;
+var buttonBranch = false;
+
+// create the buttons' color swatches
 var csList = document.getElementsByClassName("color-selector");
 for (cs of csList) {
     ch = cs.id.substring(3); // removes "cs-""
-    var csCanvas = document.createElement('canvas');
+
     // create canvas and set its width and height to accomodate the character
+    var csCanvas = document.createElement('canvas');
     csCanvas.width = 90;
     csCanvas.height = 90;
     csCanvas.style.width = csCanvas.width + "px";
@@ -919,5 +990,13 @@ for (cs of csList) {
     colorswatch.setAttribute("value", "#"+colorCode.characters[ch]);
     colorswatch.setAttribute("oninput", "updateColors(this)");
     cs.appendChild(colorswatch);
+    colorswatch.visibility = "hidden";
+
+    // create button over the canvas
+    button = document.createElement("button");
+    button.id = "button-"+ch;
+    button.setAttribute("class", "input-button");
+    button.setAttribute("onclick", "addCharacter(this)");
+    cs.appendChild(button);
 }
 

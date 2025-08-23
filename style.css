@@ -173,3 +173,12 @@ input[type="range"]:focus {
 html {
     background-color: rgb(176, 167, 212);
 }
+
+.input-button {
+    position: relative;
+    height: 90px;
+    width: 90px;
+    top: -180px;
+    opacity: 0;
+    cursor:pointer;
+}
