@@ -96,8 +96,10 @@ function findMax(arr) {
             if (typeof(arr[row][col]) == "number")
                 m = Math.max(m, arr[row][col]);
     }
-    
-    return m;
+    if (m>0)
+        return m;
+    else
+        return 1;
 }
 
 function mixColor(colorA, colorB, mixFactor) {
@@ -130,7 +132,7 @@ function evaluateCmap(cmap, v) {
 }
 
 function cmapPropagate(arr, cmap) {
-    range = findMax(arr)+1;
+    range = findMax(arr);
     for (var row = 0; row < arr.length; row++) {
         for (var col = 0; col < arr[row].length; col++) {
             if (typeof(arr[row][col]) == "number") {
