@@ -45,8 +45,9 @@ function darken(colour, value) {
     var v = 1;
     [R,G,B].forEach(c=>{
         var normal = (parseInt(c,16)/255);
-        v = Math.min(v, 0.25*(1+3*(1-normal)*value));
+        v += 0.25*(1+3*(1-normal)*value);
     });
+    v = v/3;
     [...Array(3).keys()].forEach(i=>{
         c = [R,G,B][i];
         bgC = [bgR, bgG, bgB][i]
@@ -58,6 +59,64 @@ function darken(colour, value) {
     return newColour;
 }
 
+
+function findMax(arr) {
+    var m = 0;
+    if (arr.length == 0)
+        return null;
+    for (var row = 0; row < arr.length; row++) {
+        if (arr[row].length == 0)
+            return null;
+        for (var col = 0; col < arr[row].length; col++)
+            if (typeof(arr[row][col]) == "number")
+                m = Math.max(m, arr[row][col]);
+    }
+    if (m>0)
+        return m;
+    else
+        return null;
+}
+
+function mixColour(colourA, colourB, mixFactor) {
+    var [aR, aG, aB] = [colourA.substring(0,2), colourA.substring(2,4), colourA.substring(4,6)];
+    var [bR, bG, bB] = [colourB.substring(0,2), colourB.substring(2,4), colourB.substring(4,6)];
+    var newColour = "";
+    [...Array(3).keys()].forEach(i=>{
+        aC = [aR, aG, aB][i];
+        bC = [bR, bG, bB][i];
+        c = Math.round(parseInt(aC,16)*(1-mixFactor) + parseInt(bC,16)*mixFactor).toString(16);
+        if (c.length == 1)
+            c = "0"+c;
+        newColour += c;
+    });
+    return newColour;
+}
+
+function evaluateCmap(cmap, v) {
+    idx = cmap.values.length-1;
+    for (i=0; i<cmap.values.length; i++) {
+        var entry = cmap.values[i];
+        if (v < entry) {
+            idx = i;
+            break;
+        }
+    }
+    var [a, b] = [cmap.values[idx-1], cmap.values[idx]];
+    var mixFactor = (v-a)/(b-a);
+    return mixColour(cmap.colours[idx-1], cmap.colours[idx], mixFactor);
+}
+
+function cmapPropagate(arr, cmap) {
+    range = findMax(arr);
+    for (var row = 0; row < arr.length; row++) {
+        for (var col = 0; col < arr[row].length; col++) {
+            if (typeof(arr[row][col]) == "number") {
+                arr[row][col] = evaluateCmap(cmap, arr[row][col]/range);
+            }
+        }
+    }
+    return arr;
+}
 
 function spacing(vx, vy) {
     return (n) => {
@@ -117,16 +176,40 @@ const colourCode = {
     "backgroundColour":"000000"
 };
 
+const cmaps = {
+    "rainbow": {
+        "values": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        "colours": [
+            "ff0000",
+            "ff9900",
+            "ccff00",
+            "33ff00",
+            "00ff66",
+            "00ffff",
+            "0066ff",
+            "3300ff",
+            "cc00ff",
+            "ff0099",
+            "ff0000"
+        ]
+    },
+    "custom": {
+        "values": [0, 1],
+        "colours": ["ffffff", "ffffff"]
+    }
+}
+
 // set default "." spacing
 var defaultSpacing = 3;
 glossary["characters"]["."] = glossary["spacings"]["."](defaultSpacing);
 
 class Reading {
-    constructor(sentence, maxGlyphHeight = 11, shading = false) {
+    constructor(sentence, maxGlyphHeight = 11, shading = false, colourType="default") {
         this.sentence = sentence;
         this.h = maxGlyphHeight;
         this.errorLog = null;
         this.shading = shading;
+        this.colourType = colourType;
         try {
             this.makeGlyphList();
         } catch (err) {
@@ -152,6 +235,10 @@ class Reading {
         // +1 to length to allow the c character to be placed at the end
         this.length += this.start+1;
         this.readingToGlyph();
+        if (this.colourType == "glyph")
+            this.grid = cmapPropagate(this.grid, cmaps.rainbow);
+        else if (this.colourType == "custom")
+            this.grid = cmapPropagate(this.grid, cmaps.custom);
     }
 
     makeGlyphList() {
@@ -168,8 +255,8 @@ class Reading {
                 var [topWord, bottomWord] = currentWords;
             else
                 var [topWord, bottomWord] = [currentWords[0], ""];
-            var topGlyph = new Glyph(topWord);
-            var bottomGlyph = new Glyph(bottomWord, true);
+            var topGlyph = new Glyph(topWord, false, this.colourType);
+            var bottomGlyph = new Glyph(bottomWord, true, this.colourType);
             glyphPairingsList.push([topGlyph, bottomGlyph, split]);
         });
         return glyphPairingsList;
@@ -211,6 +298,9 @@ class Reading {
                 var c = topGlyph.colours[i];
                 if (c == undefined)
                     return;
+                else if (c == 0) {
+                    c = pairingNumber;
+                }
                 [x,y] = vAdd(p,Array(this.h,cursor));
                 if (this.shading & (this.grid[x-1][y] == colourCode.backgroundColour))
                     this.grid[x-1][y] = darken(c, colourCode.shadingAmount);
@@ -226,6 +316,9 @@ class Reading {
                 var c = bottomGlyph.colours[i];
                 if (c == undefined)
                     return;
+                else if (c == 0) {
+                    c = pairingNumber;
+                }
                 [x,y] = vAdd(p,Array(this.h,cursor));
                 if (this.shading & (this.grid[x-1][y] == colourCode.backgroundColour)) 
                     this.grid[x-1][y] = darken(c, colourCode.shadingAmount);
@@ -252,10 +345,11 @@ class Reading {
 
 
 class Glyph {
-    constructor(word, flip=false) {
+    constructor(word, flip=false, colourType="default") {
         this.word = word;
         this.length = 0;
         this.vertChar = null;
+        this.colourType = colourType;
         if (flip)
             this.flip = Array(-1,1);
         else
@@ -270,6 +364,8 @@ class Glyph {
         pixels.forEach((p) => {
             this.pixels.push(vMult(p,this.flip))
         });
+        if (this.colourType == "pixel")
+            this.colours = cmapPropagate([this.colours], cmaps.rainbow)[0];
     }
 
     glyphType() {
@@ -288,14 +384,35 @@ class Glyph {
 
     computePixelsSimple() {
         var colours = [];
+        var colourType = this.colourType;
+        function addColour(ch) {
+            switch (colourType) {
+                case "custom":
+                    colours.push(1);
+                    break;
+                case "pixel":
+                    colours.push(totalChars);
+                    totalChars += 1;
+                    break;
+                case "glyph":
+                    colours.push(0);
+                    break;
+                default:
+                    if (Object.keys(colourCode.spacings).includes(ch))
+                        colours.push(colourCode.spacings[ch]);
+                    else
+                        colours.push(colourCode.characters[ch]);
+            }
+        }
         var pixels = [];
         var word = this.word;
+        var totalChars = 0;
         if (word.length == 0)
             return pixels;
 
         if (word[0] == "'") {
             this.pixels.push(Array(-6,0));
-            colours.push(colourCode.characters["'"]);
+            addColour("'");
             word = word.substring(1);
         }
 
@@ -315,7 +432,7 @@ class Glyph {
         }
         
         glossary.spacings["^"](branchSpacing).forEach((p) => {
-            colours.push(colourCode.spacings["^"]);
+            addColour("^");
             pixels.push(p);
         });
         var position = Array(-branchSpacing, branchSpacing);
@@ -330,14 +447,14 @@ class Glyph {
                 instant = false;
             else {
                 glossary.spacings["."](defaultSpacing).forEach((p) => {
-                    colours.push(colourCode.spacings["."]);
+                    addColour(".");
                     pixels.push(vAdd(position,p));
                 });
                 position = vAdd(position, Array(0,defaultSpacing));
             }
 
             glossary.characters[ch].forEach((p) => {
-                colours.push(colourCode.characters[ch]);
+                addColour(ch);
                 pixels.push(vAdd(position,p));
             });
         });
@@ -348,6 +465,27 @@ class Glyph {
 
     computePixelsComplex() {
         var colours = [];
+        var colourType = this.colourType;
+        function addColour(ch) {
+            switch (colourType) {
+                case "custom":
+                    colours.push(1);
+                    break;
+                case "pixel":
+                    colours.push(totalChars);
+                    totalChars += 1;
+                    break;
+                case "glyph":
+                    colours.push(0);
+                    break;
+                default:
+                    if (Object.keys(colourCode.spacings).includes(ch))
+                        colours.push(colourCode.spacings[ch]);
+                    else
+                        colours.push(colourCode.characters[ch]);
+            }
+        }
+
         function processBranch(branch) {
             branch.forEach((ch)=>{
                 if (ch == "i") {
@@ -358,7 +496,7 @@ class Glyph {
                     instant = false;
                 else {
                     glossary.spacings["."](defaultSpacing).forEach((p) => {
-                        colours.push(colourCode.spacings["."]);
+                        addColour(".");
                         pixels.push(vAdd(position,p));
                     });
                     position = vAdd(position, Array(0,defaultSpacing));
@@ -371,12 +509,13 @@ class Glyph {
         }
         var branchSpacings;
         var pixels = [];
+        var totalChars = 0;
         var word = this.word;
         if (word.length == 0)
             return pixels;
 
         if (word[0] == "'") {
-            colours.push(colourCode.characters["'"]);
+            addColour("'");
             this.pixels.push(Array(-6,0));
             word = word.substring(1);
         }
@@ -395,7 +534,7 @@ class Glyph {
         else
             branchSpacings = [3,3];
         glossary.spacings["^"](branchSpacings[0]).forEach((p)=>{
-            colours.push(colourCode.spacings["^"]);
+            addColour("^");
             pixels.push(p);
         });
         var position = Array(-branchSpacings[0], branchSpacings[0]);
@@ -407,7 +546,7 @@ class Glyph {
         
         if (!instant) {
             glossary.spacings["."](defaultSpacing).forEach((p)=>{
-                colours.push(colourCode.spacings["."]);
+                addColour(".");
                 pixels.push(vAdd(position,p));
             });
             position = vAdd(position, Array(0,defaultSpacing));
@@ -415,14 +554,14 @@ class Glyph {
         var preBranchPosition = Array(...position);
         var vertSpacing = glossary.spacings[this.vertChar](branchSpacings[1]+1);
         vertSpacing.forEach((p)=>{
-            colours.push(colourCode.spacings[this.vertChar]);
+            addColour(this.vertChar);
             pixels.push(vAdd(position,p));
         });
 
         position = vAdd(position,vertSpacing[branchSpacings[1]]);
 
         glossary.spacings["."](defaultSpacing).forEach((p)=>{
-            colours.push(colourCode.spacings["."]);
+            addColour(".");
             pixels.push(vAdd(position,p));
         });
 
@@ -514,7 +653,7 @@ function attemptCompute(ignore=false) {
    var sentence = ""+input.innerHTML;
     if (!checkValid(sentence))
         return "invalid sentence";
-    var reading = new Reading(sentence, 10, use_shading); // true if shading checkbox is ticked
+    var reading = new Reading(sentence, 10, use_shading, useColor.value); // true if shading checkbox is ticked
     grid = reading.grid;
     clearGrid();
     if (grid.length == 0)
@@ -567,6 +706,7 @@ var height = 11; // 10 for glyphs + 1 for shading
 var step = 10;
 
 const canvas = document.getElementById("grid");
+const useColor = document.getElementById("use-color");
 canvas.height = (2*height+1)*step;
 canvas.width = 1920; // not sure about this
 const ctx = canvas.getContext("2d");
@@ -597,6 +737,10 @@ color_setting.addEventListener('transitionend', () => {
         color_setting.style.visibility = "hidden";
     }
 });
+color_setting.addEventListener("input", (e) => {
+    [cmaps.custom.colours[0], cmaps.custom.colours[1]] = [color_setting.value.substring(1), color_setting.value.substring(1)];
+    attemptCompute(true);
+})
 
 // create the default glyph
 attemptCompute(true);
