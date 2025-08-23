@@ -38,10 +38,10 @@ function vAdd(v1, v2) {
     return Array(...vres);
 }
 
-function darken(colour, value) {
-    var [R,G,B] = [colour.substring(0,2), colour.substring(2,4), colour.substring(4,6)];
-    var [bgR, bgG, bgB] = [colourCode.backgroundColour.substring(0,2), colourCode.backgroundColour.substring(2,4), colourCode.backgroundColour.substring(4,6)];
-    var newColour = "";
+function darken(color, value) {
+    var [R,G,B] = [color.substring(0,2), color.substring(2,4), color.substring(4,6)];
+    var [bgR, bgG, bgB] = [colorCode.backgroundColor.substring(0,2), colorCode.backgroundColor.substring(2,4), colorCode.backgroundColor.substring(4,6)];
+    var newColor = "";
     var v = 1;
     [R,G,B].forEach(c=>{
         var normal = (parseInt(c,16)/255);
@@ -54,9 +54,9 @@ function darken(colour, value) {
         c = Math.round((parseInt(c,16)*v+parseInt(bgC,16))/2).toString(16);
         if (c.length == 1)
             c = "0"+c;
-        newColour += c;
+        newColor += c;
     });
-    return newColour;
+    return newColor;
 }
 
 
@@ -77,19 +77,19 @@ function findMax(arr) {
         return null;
 }
 
-function mixColour(colourA, colourB, mixFactor) {
-    var [aR, aG, aB] = [colourA.substring(0,2), colourA.substring(2,4), colourA.substring(4,6)];
-    var [bR, bG, bB] = [colourB.substring(0,2), colourB.substring(2,4), colourB.substring(4,6)];
-    var newColour = "";
+function mixColor(colorA, colorB, mixFactor) {
+    var [aR, aG, aB] = [colorA.substring(0,2), colorA.substring(2,4), colorA.substring(4,6)];
+    var [bR, bG, bB] = [colorB.substring(0,2), colorB.substring(2,4), colorB.substring(4,6)];
+    var newColor = "";
     [...Array(3).keys()].forEach(i=>{
         aC = [aR, aG, aB][i];
         bC = [bR, bG, bB][i];
         c = Math.round(parseInt(aC,16)*(1-mixFactor) + parseInt(bC,16)*mixFactor).toString(16);
         if (c.length == 1)
             c = "0"+c;
-        newColour += c;
+        newColor += c;
     });
-    return newColour;
+    return newColor;
 }
 
 function evaluateCmap(cmap, v) {
@@ -103,7 +103,7 @@ function evaluateCmap(cmap, v) {
     }
     var [a, b] = [cmap.values[idx-1], cmap.values[idx]];
     var mixFactor = (v-a)/(b-a);
-    return mixColour(cmap.colours[idx-1], cmap.colours[idx], mixFactor);
+    return mixColor(cmap.colors[idx-1], cmap.colors[idx], mixFactor);
 }
 
 function cmapPropagate(arr, cmap) {
@@ -152,7 +152,7 @@ const glossary = {
     "spacings": {"^": spacing(-1, 1), "|": spacing(-1, 0), ".": spacing(0, 1)},
 };
 
-const colourCode = {
+const colorCode = {
     "characters": {
         "1": "af00ff",
         "2": "af00ff",
@@ -173,13 +173,13 @@ const colourCode = {
     },
     "spacings": {"^": "ff3dff", "|": "ff3dff", ".": "ffffff"},
     "shadingAmount":0.5,
-    "backgroundColour":"000000"
+    "backgroundColor":"000000"
 };
 
 const cmaps = {
     "rainbow": {
         "values": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-        "colours": [
+        "colors": [
             "ff0000",
             "ff9900",
             "ccff00",
@@ -195,7 +195,7 @@ const cmaps = {
     },
     "custom": {
         "values": [0, 1],
-        "colours": ["ffffff", "ffffff"]
+        "colors": ["ffffff", "ffffff"]
     }
 }
 
@@ -204,12 +204,12 @@ var defaultSpacing = 3;
 glossary["characters"]["."] = glossary["spacings"]["."](defaultSpacing);
 
 class Reading {
-    constructor(sentence, maxGlyphHeight = 11, shading = false, colourType="default") {
+    constructor(sentence, maxGlyphHeight = 11, shading = false, colorType="default") {
         this.sentence = sentence;
         this.h = maxGlyphHeight;
         this.errorLog = null;
         this.shading = shading;
-        this.colourType = colourType;
+        this.colorType = colorType;
         try {
             this.makeGlyphList();
         } catch (err) {
@@ -235,9 +235,9 @@ class Reading {
         // +1 to length to allow the c character to be placed at the end
         this.length += this.start+1;
         this.readingToGlyph();
-        if (this.colourType == "glyph")
+        if (this.colorType == "glyph")
             this.grid = cmapPropagate(this.grid, cmaps.rainbow);
-        else if (this.colourType == "custom")
+        else if (this.colorType == "custom")
             this.grid = cmapPropagate(this.grid, cmaps.custom);
     }
 
@@ -255,8 +255,8 @@ class Reading {
                 var [topWord, bottomWord] = currentWords;
             else
                 var [topWord, bottomWord] = [currentWords[0], ""];
-            var topGlyph = new Glyph(topWord, false, this.colourType);
-            var bottomGlyph = new Glyph(bottomWord, true, this.colourType);
+            var topGlyph = new Glyph(topWord, false, this.colorType);
+            var bottomGlyph = new Glyph(bottomWord, true, this.colorType);
             glyphPairingsList.push([topGlyph, bottomGlyph, split]);
         });
         return glyphPairingsList;
@@ -281,11 +281,11 @@ class Reading {
         var oldcursor;
 
         var cursor = this.start;
-        this.grid = Array.from(Array(2*height+1), () => new Array(this.length).fill(colourCode.backgroundColour));
+        this.grid = Array.from(Array(2*height+1), () => new Array(this.length).fill(colorCode.backgroundColor));
         if (cursor != 0) {
             [...Array(cursor).keys()].forEach((col)=>{
-                if (this.shading & (this.grid[this.h-1][col] == colourCode.backgroundColour))
-                    this.grid[this.h-1][col] = darken("ffffff", colourCode.shadingAmount);
+                if (this.shading & (this.grid[this.h-1][col] == colorCode.backgroundColor))
+                    this.grid[this.h-1][col] = darken("ffffff", colorCode.shadingAmount);
                 this.grid[this.h][col] = "ffffff";
             });
         }
@@ -295,15 +295,15 @@ class Reading {
 
             [...Array(topGlyph.pixels.length).keys()].forEach(i => {
                 var p = topGlyph.pixels[i];
-                var c = topGlyph.colours[i];
+                var c = topGlyph.colors[i];
                 if (c == undefined)
                     return;
                 else if (c == 0) {
                     c = pairingNumber;
                 }
                 [x,y] = vAdd(p,Array(this.h,cursor));
-                if (this.shading & (this.grid[x-1][y] == colourCode.backgroundColour))
-                    this.grid[x-1][y] = darken(c, colourCode.shadingAmount);
+                if (this.shading & (this.grid[x-1][y] == colorCode.backgroundColor))
+                    this.grid[x-1][y] = darken(c, colorCode.shadingAmount);
                 this.grid[x][y] = c;
             });
             topBranchLength = topGlyph.length;
@@ -313,15 +313,15 @@ class Reading {
 
             [...Array(bottomGlyph.pixels.length).keys()].forEach(i => {
                 var p = bottomGlyph.pixels[i];
-                var c = bottomGlyph.colours[i];
+                var c = bottomGlyph.colors[i];
                 if (c == undefined)
                     return;
                 else if (c == 0) {
                     c = pairingNumber;
                 }
                 [x,y] = vAdd(p,Array(this.h,cursor));
-                if (this.shading & (this.grid[x-1][y] == colourCode.backgroundColour)) 
-                    this.grid[x-1][y] = darken(c, colourCode.shadingAmount);
+                if (this.shading & (this.grid[x-1][y] == colorCode.backgroundColor)) 
+                    this.grid[x-1][y] = darken(c, colorCode.shadingAmount);
                 this.grid[x][y] = c;
             });
             bottomBranchLength = bottomGlyph.length;
@@ -334,8 +334,8 @@ class Reading {
                 var end = 0;
             [...Array(cursor-end-oldcursor).keys()].forEach((c)=>{
                 var col = c+oldcursor;
-                if (this.shading & (this.grid[this.h-1][col] == colourCode.backgroundColour))
-                    this.grid[this.h-1][col] = darken("ffffff", colourCode.shadingAmount);
+                if (this.shading & (this.grid[this.h-1][col] == colorCode.backgroundColor))
+                    this.grid[this.h-1][col] = darken("ffffff", colorCode.shadingAmount);
                 this.grid[this.h][col] = "ffffff";
             })
         }   
@@ -345,18 +345,18 @@ class Reading {
 
 
 class Glyph {
-    constructor(word, flip=false, colourType="default") {
+    constructor(word, flip=false, colorType="default") {
         this.word = word;
         this.length = 0;
         this.vertChar = null;
-        this.colourType = colourType;
+        this.colorType = colorType;
         if (flip)
             this.flip = Array(-1,1);
         else
             this.flip = Array(1,1);
         this.length = 0;
         this.pixels = [];
-        this.colours = [];
+        this.colors = [];
         if (this.glyphType() == "SimpleGlyph")
             var pixels = this.computePixelsSimple();
         else
@@ -364,8 +364,8 @@ class Glyph {
         pixels.forEach((p) => {
             this.pixels.push(vMult(p,this.flip))
         });
-        if (this.colourType == "pixel")
-            this.colours = cmapPropagate([this.colours], cmaps.rainbow)[0];
+        if (this.colorType == "pixel")
+            this.colors = cmapPropagate([this.colors], cmaps.rainbow)[0];
     }
 
     glyphType() {
@@ -383,25 +383,25 @@ class Glyph {
     }
 
     computePixelsSimple() {
-        var colours = [];
-        var colourType = this.colourType;
-        function addColour(ch) {
-            switch (colourType) {
+        var colors = [];
+        var colorType = this.colorType;
+        function addColor(ch) {
+            switch (colorType) {
                 case "custom":
-                    colours.push(1);
+                    colors.push(1);
                     break;
                 case "pixel":
-                    colours.push(totalChars);
+                    colors.push(totalChars);
                     totalChars += 1;
                     break;
                 case "glyph":
-                    colours.push(0);
+                    colors.push(0);
                     break;
                 default:
-                    if (Object.keys(colourCode.spacings).includes(ch))
-                        colours.push(colourCode.spacings[ch]);
+                    if (Object.keys(colorCode.spacings).includes(ch))
+                        colors.push(colorCode.spacings[ch]);
                     else
-                        colours.push(colourCode.characters[ch]);
+                        colors.push(colorCode.characters[ch]);
             }
         }
         var pixels = [];
@@ -412,7 +412,7 @@ class Glyph {
 
         if (word[0] == "'") {
             this.pixels.push(Array(-6,0));
-            addColour("'");
+            addColor("'");
             word = word.substring(1);
         }
 
@@ -432,7 +432,7 @@ class Glyph {
         }
         
         glossary.spacings["^"](branchSpacing).forEach((p) => {
-            addColour("^");
+            addColor("^");
             pixels.push(p);
         });
         var position = Array(-branchSpacing, branchSpacing);
@@ -447,42 +447,42 @@ class Glyph {
                 instant = false;
             else {
                 glossary.spacings["."](defaultSpacing).forEach((p) => {
-                    addColour(".");
+                    addColor(".");
                     pixels.push(vAdd(position,p));
                 });
                 position = vAdd(position, Array(0,defaultSpacing));
             }
 
             glossary.characters[ch].forEach((p) => {
-                addColour(ch);
+                addColor(ch);
                 pixels.push(vAdd(position,p));
             });
         });
         this.length = Math.max(...pixels.map((p) => p[1]));
-        this.colours = colours;
+        this.colors = colors;
         return pixels;
     }
 
     computePixelsComplex() {
-        var colours = [];
-        var colourType = this.colourType;
-        function addColour(ch) {
-            switch (colourType) {
+        var colors = [];
+        var colorType = this.colorType;
+        function addColor(ch) {
+            switch (colorType) {
                 case "custom":
-                    colours.push(1);
+                    colors.push(1);
                     break;
                 case "pixel":
-                    colours.push(totalChars);
+                    colors.push(totalChars);
                     totalChars += 1;
                     break;
                 case "glyph":
-                    colours.push(0);
+                    colors.push(0);
                     break;
                 default:
-                    if (Object.keys(colourCode.spacings).includes(ch))
-                        colours.push(colourCode.spacings[ch]);
+                    if (Object.keys(colorCode.spacings).includes(ch))
+                        colors.push(colorCode.spacings[ch]);
                     else
-                        colours.push(colourCode.characters[ch]);
+                        colors.push(colorCode.characters[ch]);
             }
         }
 
@@ -496,13 +496,13 @@ class Glyph {
                     instant = false;
                 else {
                     glossary.spacings["."](defaultSpacing).forEach((p) => {
-                        addColour(".");
+                        addColor(".");
                         pixels.push(vAdd(position,p));
                     });
                     position = vAdd(position, Array(0,defaultSpacing));
                 }
                 glossary.characters[ch].forEach((p) => {
-                    colours.push(colourCode.characters[ch]);
+                    colors.push(colorCode.characters[ch]);
                     pixels.push(vAdd(position,p));
                 });
             });
@@ -515,7 +515,7 @@ class Glyph {
             return pixels;
 
         if (word[0] == "'") {
-            addColour("'");
+            addColor("'");
             this.pixels.push(Array(-6,0));
             word = word.substring(1);
         }
@@ -534,7 +534,7 @@ class Glyph {
         else
             branchSpacings = [3,3];
         glossary.spacings["^"](branchSpacings[0]).forEach((p)=>{
-            addColour("^");
+            addColor("^");
             pixels.push(p);
         });
         var position = Array(-branchSpacings[0], branchSpacings[0]);
@@ -546,7 +546,7 @@ class Glyph {
         
         if (!instant) {
             glossary.spacings["."](defaultSpacing).forEach((p)=>{
-                addColour(".");
+                addColor(".");
                 pixels.push(vAdd(position,p));
             });
             position = vAdd(position, Array(0,defaultSpacing));
@@ -554,14 +554,14 @@ class Glyph {
         var preBranchPosition = Array(...position);
         var vertSpacing = glossary.spacings[this.vertChar](branchSpacings[1]+1);
         vertSpacing.forEach((p)=>{
-            addColour(this.vertChar);
+            addColor(this.vertChar);
             pixels.push(vAdd(position,p));
         });
 
         position = vAdd(position,vertSpacing[branchSpacings[1]]);
 
         glossary.spacings["."](defaultSpacing).forEach((p)=>{
-            addColour(".");
+            addColor(".");
             pixels.push(vAdd(position,p));
         });
 
@@ -578,7 +578,7 @@ class Glyph {
         );
 
         this.length = Math.max(...pixels.map((p) => p[1]));
-        this.colours = colours;
+        this.colors = colors;
         return pixels;
     }
 
@@ -666,7 +666,7 @@ function attemptCompute(ignore=false) {
 function drawCScanvas(csCanvas) {
     var canvasCtx = csCanvas.getContext("2d");
     var ch = csCanvas.id.substring(7); // remove "canvas-"
-    var csGrid = Array.from(Array(9), () => new Array(9).fill(colourCode.backgroundColour));
+    var csGrid = Array.from(Array(9), () => new Array(9).fill(colorCode.backgroundColor));
     [...Array(9).keys()].forEach(col=>{csGrid[4][col]="ffffff"});
     csGrid[4][4]="bbbbbb";
     var csPixels = [];
@@ -677,9 +677,9 @@ function drawCScanvas(csCanvas) {
     csPixels.forEach(p=>{
         var [x,y] = p;
         if (Object.keys(glossary.spacings).includes(ch))
-            csGrid[x][y] = colourCode.spacings[ch];
+            csGrid[x][y] = colorCode.spacings[ch];
         else
-            csGrid[x][y] = colourCode.characters[ch];
+            csGrid[x][y] = colorCode.characters[ch];
     });
     for (var row = 0; row < 9; row++) {
         for (var col = 0; col < 9; col++) {
@@ -692,9 +692,9 @@ function drawCScanvas(csCanvas) {
 function updateColors(colorswatch) {
     var ch = colorswatch.id.substring(12) // remove "colorswatch-"
     if (Object.keys(glossary.spacings).includes(ch))
-        colourCode.spacings[ch] = colorswatch.value.substring(1); // removes "#"
+        colorCode.spacings[ch] = colorswatch.value.substring(1); // removes "#"
     else
-        colourCode.characters[ch] = colorswatch.value.substring(1);
+        colorCode.characters[ch] = colorswatch.value.substring(1);
     drawCScanvas(document.getElementById("canvas-"+ch));
     attemptCompute(true);
 }
@@ -738,7 +738,7 @@ color_setting.addEventListener('transitionend', () => {
     }
 });
 color_setting.addEventListener("input", (e) => {
-    [cmaps.custom.colours[0], cmaps.custom.colours[1]] = [color_setting.value.substring(1), color_setting.value.substring(1)];
+    [cmaps.custom.colors[0], cmaps.custom.colors[1]] = [color_setting.value.substring(1), color_setting.value.substring(1)];
     attemptCompute(true);
 })
 
@@ -763,7 +763,7 @@ for (cs of csList) {
     colorswatch.id = "colorswatch-"+ch;
     colorswatch.setAttribute("class", "color-swatch");
     colorswatch.setAttribute("type", "color");
-    colorswatch.setAttribute("value", "#"+colourCode.characters[ch]);
+    colorswatch.setAttribute("value", "#"+colorCode.characters[ch]);
     colorswatch.setAttribute("oninput", "updateColors(this)");
     cs.appendChild(colorswatch);
 }
