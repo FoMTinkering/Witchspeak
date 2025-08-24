@@ -1,32 +1,42 @@
 // temporary variable, should eventually be replaced with combobox (on page creation below)
 var activeColormap = "peachy";
-
+var colorInputToggle = 0;
 var use_shading = false;
 
 function onChangeColorSetting(obj) {
     var color_setting = obj.value
     obj.blur();
 
-    var setting = document.getElementById("custom-color");
+    var customColor = document.getElementById("custom-color");
+    var cmapSelect = document.getElementById("colormap-select");
     switch (color_setting) {
         case "custom":
-            setting.style.visibility = "visible";
-            setting.style.width = "25px";
-            setting.style.height = "18px";
-            setting.style.opacity = "1";
+            cmapSelect.style.width = "0px";
+            cmapSelect.style.opacity = "0";
 
-            var new_color = setting.value.substring(1);
+            customColor.style.visibility = "visible";
+            customColor.style.width = "25px";
+            customColor.style.opacity = "1";
+
+            var new_color = customColor.value.substring(1);
             [cmaps.custom.colors[0], cmaps.custom.colors[1]] = [new_color, new_color];
             colorCode.mainlineColor = new_color;
             break;
+        case "glyph":
         case "pixel":
-            setting.style.width = "0px";
-            setting.style.height = "0px";
+            customColor.style.width = "0px";
+            customColor.style.opacity = "0";
+
+            cmapSelect.style.visibility = "visible";
+            cmapSelect.style.width = "80px";
+            cmapSelect.style.opacity = "1";
             colorCode.mainlineColor = evaluateCmap(cmaps[activeColormap], 0);
             break;
         default:
-            setting.style.width = "0px";
-            setting.style.height = "0px";
+            cmapSelect.style.width = "0px";
+            cmapSelect.style.opacity = "0";
+            customColor.style.width = "0px";
+            customColor.style.opacity = "0";
             colorCode.mainlineColor = "ffffff";
     }
     attemptCompute(true);
@@ -48,10 +58,69 @@ function onShowShadingChange(obj) {
     attemptCompute(true);
 }
 
-function onChangeShadeValue(obj)
-{
+function onChangeShadeValue(obj) {
     colorCode.shadingAmount = obj.value;
     attemptCompute(true);
+}
+
+function onChangeBackground(obj) {
+    colorCode.backgroundColor = obj.value.substring(1);
+    document.getElementById("canvas-container").style.backgroundColor = colorCode.backgroundColor;
+    attemptCompute(true);
+}
+
+function onChangeCMap(obj) {
+    activeColormap = obj.value;
+    colorCode.mainlineColor = evaluateCmap(cmaps[activeColormap], 0);
+    attemptCompute(true);
+}
+
+function toggleOnClick(obj) {
+    colorInputToggle = obj.value = Math.abs(obj.value-1);
+    var activeColor = "aliceblue";
+    var inactiveColor = "rgb(176, 167, 212)";
+    var inactiveBorderColor = "rgb(15, 10, 36)";
+
+    var state = colorInputToggle == 0;
+    var labels = document.getElementsByClassName("switch-label");
+    labels[0].style.color = state ? activeColor:inactiveColor;
+    labels[0].style.borderColor = state ? activeColor:inactiveBorderColor;
+    labels[1].style.color = state ? inactiveColor:activeColor;
+    labels[1].style.borderColor = state ? inactiveBorderColor:activeColor;
+
+    var operators = document.getElementsByClassName("format-button");
+    for(var i=0; i<operators.length; i++) {
+        operators[i].style.color = operators[i].style.borderColor = (state ? inactiveColor:activeColor);
+        operators[i].style.pointerEvents = state ? "none":"all";
+    }
+
+    var elements = document.getElementsByClassName("color-swatch");
+    for (var i=0; i<elements.length; i++) {
+        elements[i].style.zIndex = state ? 1:0;
+    }
+
+    elements = document.getElementsByClassName("input-button");
+    for (var i=0; i<elements.length; i++) {
+        elements[i].style.zIndex = state ? 0:1;
+    }
+
+    buttonType = state ? "color select":"glyph input";
+}
+
+function onToggleUpdate(obj) {
+    obj.value = colorInputToggle;
+}
+
+function goNextGlyph() {
+    continueLastGlyph = false;
+}
+
+function doBranch() {
+    buttonBranch = false;
+}
+
+function switchSide() {
+
 }
 
 
@@ -93,6 +162,18 @@ function darken(color, value) {
     });
     return newColor;
 }
+
+// function darken(color, value) {
+//     var [R,G,B] = [color.substring(0,2), color.substring(2,4), color.substring(4,6)];
+//     var newColor = "";
+//     [...Array(3).keys()].forEach(i=>{
+//         c = Math.round(parseInt([R,G,B][i],16)*value).toString(16);
+//         if (c.length == 1)
+//             c = "0"+c;
+//         newColor += c;
+//     });
+//     return newColor;
+// }
 
 
 function findMax(arr) {
@@ -828,7 +909,7 @@ function drawPixels() {
 function clearGrid() {
     for (var row = 0; row < (2*height+1); row++) {
         for (var col = 0; col < 192; col++) {
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "#"+colorCode.backgroundColor;
             ctx.fillRect(col * step, row * step, step, step);
         }
     }
@@ -861,6 +942,9 @@ function attemptCompute(ignore=false) {
         return "no length";
     drawPixels();
     canvas.style.left = 50-50*Math.min(reading.length/192, 1)+"%";
+
+    document.getElementById("download-button").href = canvas.toDataURL();
+
     return sentence;
 }
 
@@ -933,8 +1017,7 @@ input.addEventListener("keydown", (e) => {
 
 color_setting = document.getElementById("custom-color");
 color_setting.addEventListener('transitionend', () => {
-    color_setting = document.getElementById("custom-color");
-    if(color_setting.style.width == "0px" && color_setting.style.height == "0px") {
+    if(color_setting.style.width == "0px") {
         color_setting.style.visibility = "hidden";
         color_setting.style.opacity = "0";
     }
@@ -951,6 +1034,21 @@ shader_setting.addEventListener('transitioned', () => {
     if(shader_setting.opacity == "0")
     {
         shader_setting.visibility = "hidden";
+    }
+});
+
+var cmapSelect = document.getElementById("colormap-select");
+for (const [key, value] of Object.entries(cmaps)) {
+    var cmp = document.createElement('option');
+    cmp.value = key;
+    cmp.innerHTML = key[0].toUpperCase() + key.substring(1);
+    cmapSelect.appendChild(cmp);
+}
+cmapSelect.value = activeColormap;
+cmapSelect.addEventListener('transitionend', () => {
+    if(cmapSelect.style.width == "0px") {
+        cmapSelect.style.visibility = "hidden";
+        cmapSelect.style.opacity = "0";
     }
 });
 
@@ -989,14 +1087,15 @@ for (cs of csList) {
     colorswatch.setAttribute("type", "color");
     colorswatch.setAttribute("value", "#"+colorCode.characters[ch]);
     colorswatch.setAttribute("oninput", "updateColors(this)");
+    colorswatch.style.zIndex = 1;
     cs.appendChild(colorswatch);
-    colorswatch.visibility = "hidden";
 
     // create button over the canvas
     button = document.createElement("button");
     button.id = "button-"+ch;
     button.setAttribute("class", "input-button");
     button.setAttribute("onclick", "addCharacter(this)");
+    button.style.zIndex = 0;
     cs.appendChild(button);
 }
 
