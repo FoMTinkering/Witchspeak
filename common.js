@@ -139,24 +139,65 @@ function undoLastGlyph() {
     }
 }
 
+function toggleSplit() {
+    var index = -1;
+    var toggleState = false;
+    for(var i=buttonGlyphs.length-1; i>=0; i--) {
+        if(buttonGlyphs[i] == ('/')) {
+            toggleState = true;
+            index = i;
+            break;
+        }
+        else if(buttonGlyphs[i] == ('*/'))
+        {
+            toggleState = false;
+            index = i;
+            break;
+        }
+    }
+
+    if(toggleState) {
+        buttonGlyphs[index].splice(buttonGlyphs[index].lastIndexOf("/"), 1, "*/");
+    }
+    else {
+        buttonGlyphs[index].splice(buttonGlyphs[index].lastIndexOf("*/"), 1, "/");
+        for(var i=index; i>=0; i--) {
+            if(buttonGlyphs[i].includes('*')) {
+                buttonGlyphs[i].splice(0, 1);
+            }
+        }
+    }
+    processButtonGlyph();
+}
+
 function switchSide() {
-    if (!continueLastGlyph) { // allows (/.54) and the likes to be valid
-        buttonGlyphs.push([]);
-        buttonGlyphs.push("/");
+    var currentGlyph = buttonGlyphs[buttonGlyphs.length-1];
+    if(currentGlyph == '/' || currentGlyph == '*/') {
+        toggleSplit();
         return;
     }
-    var currentGlyph = buttonGlyphs[buttonGlyphs.length-1];
+
+    if (!continueLastGlyph) { // allows (/.54) and the likes to be valid
+        buttonGlyphs.push([]);
+        buttonGlyphs.push(["/"]);
+        return;
+    }
+
     var validGlyph = true;
     if (buttonGlyphs.length > 1) {
-        if (buttonGlyphs[buttonGlyphs.length-2].includes("/"))
+        if (buttonGlyphs[buttonGlyphs.length-2].includes("/") || buttonGlyphs[buttonGlyphs.length-2].includes("*/")) {
+            toggleSplit();
             validGlyph = false;
+        }
     }
+
     currentGlyph.forEach(ch => {
-        if ((typeof(ch) == "object") & (ch.length != 2))
+        if ((typeof(ch) == "object") & (ch.length != 2)) {
             validGlyph = false;
+        }
     });
     if (validGlyph) {
-        buttonGlyphs.push("/"); // making this "*/" forces the immediate switching
+        buttonGlyphs.push(["/"]); // making this "*/" forces the immediate switching
         continueLastGlyph = false;
     }
 }
@@ -923,7 +964,7 @@ function processButtonGlyph() {
         }            
     })
     buttonGlyphs.forEach(glyph => {
-        if (glyph.includes("/")) {
+        if (glyph.includes("/") || glyph.includes("*/")) {
             glyphText = glyphText.substring(0,glyphText.length-2) + "/";
             bottomSplit = true;
             return;
