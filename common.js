@@ -123,6 +123,22 @@ function doBranch() {
     buttonBranch = false;
 }
 
+function refreshGlyph() {
+    buttonGlyphs = [];
+    processButtonGlyph()
+}
+
+function undoLastGlyph() {
+    if (buttonGlyphs.length > 0) {
+        var popped = buttonGlyphs.pop(-1);
+        if (popped.includes("/")) {
+            buttonGlyphs.pop(-1);
+            if (popped.includes("*"))
+                buttonGlyphs[buttonGlyphs.length-1].pop(0); // remove "*" at start of glyph
+        }
+    }
+}
+
 function switchSide() {
     if (!continueLastGlyph) { // allows (/.54) and the likes to be valid
         buttonGlyphs.push([]);
@@ -140,7 +156,7 @@ function switchSide() {
             validGlyph = false;
     });
     if (validGlyph) {
-        buttonGlyphs.push("/");
+        buttonGlyphs.push("/"); // making this "*/" forces the immediate switching
         continueLastGlyph = false;
     }
 }
@@ -901,8 +917,10 @@ function processButtonGlyph() {
     // prepare *-split glyphs
     [...Array(buttonGlyphs.length).keys()].forEach(i => {
         glyph = buttonGlyphs[i];
-        if (glyph.includes("*"))
-            buttonGlyphs[i-1].splice(0,0,"*");
+        if (glyph == "*/") {
+            if (!buttonGlyphs[i-1].includes("*"))
+                buttonGlyphs[i-1].splice(0,0,"*");
+        }            
     })
     buttonGlyphs.forEach(glyph => {
         if (glyph.includes("/")) {
@@ -1107,7 +1125,7 @@ var buttonType = "color select";
 
 // create empty list of glyphs determined by button presses 
 // these will be parsed if the buttonType is "glyph input"
-const buttonGlyphs = [];
+var buttonGlyphs = [];
 var continueLastGlyph = false;
 var buttonBranch = false;
 
