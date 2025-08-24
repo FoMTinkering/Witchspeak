@@ -66,6 +66,7 @@ function onChangeShadeValue(obj) {
 function onChangeBackground(obj) {
     colorCode.backgroundColor = obj.value.substring(1);
     document.getElementById("canvas-container").style.backgroundColor = colorCode.backgroundColor;
+    document.getElementById("gradient-decor").style.backgroundImage = "linear-gradient(0deg, rgb(15, 10, 36), #"+colorCode.backgroundColor+")";
     attemptCompute(true);
 }
 
@@ -116,11 +117,32 @@ function goNextGlyph() {
 }
 
 function doBranch() {
+    var currentGlyph = buttonGlyphs[buttonGlyphs.length-1];
+    if (typeof(currentGlyph[currentGlyph.length-1]) != "object")
+        return;
     buttonBranch = false;
 }
 
 function switchSide() {
-
+    if (!continueLastGlyph) { // allows (/.54) and the likes to be valid
+        buttonGlyphs.push([]);
+        buttonGlyphs.push("/");
+        return;
+    }
+    var currentGlyph = buttonGlyphs[buttonGlyphs.length-1];
+    var validGlyph = true;
+    if (buttonGlyphs.length > 1) {
+        if (buttonGlyphs[buttonGlyphs.length-2].includes("/"))
+            validGlyph = false;
+    }
+    currentGlyph.forEach(ch => {
+        if ((typeof(ch) == "object") & (ch.length != 2))
+            validGlyph = false;
+    });
+    if (validGlyph) {
+        buttonGlyphs.push("/");
+        continueLastGlyph = false;
+    }
 }
 
 
@@ -856,11 +878,15 @@ function addCharacter(button) {
         } else if (typeof(lastChar) == "object") {
             if (["|", "^"].includes(ch))
                 throw new Error("cannot make glyph with more than two branches");
-            if (lastChar.length == 1) {
+            if (lastChar.length <= 2) {
                 if (buttonBranch) 
-                    lastChar[0].push(ch);
-                else 
-                    lastChar.push([ch]);
+                    lastChar[lastChar.length-1].push(ch);
+                else {
+                    if (lastChar.length == 1) {
+                        lastChar.push([ch]);
+                        buttonBranch = true;
+                    }
+                }
             }
         } else {
             currentGlyph.push(ch);
@@ -871,9 +897,26 @@ function addCharacter(button) {
 
 function processButtonGlyph() {
     var glyphText = ""
+    var bottomSplit = false;
+    // prepare *-split glyphs
+    [...Array(buttonGlyphs.length).keys()].forEach(i => {
+        glyph = buttonGlyphs[i];
+        if (glyph.includes("*"))
+            buttonGlyphs[i-1].splice(0,0,"*");
+    })
     buttonGlyphs.forEach(glyph => {
-        glyphText += "("
+        if (glyph.includes("/")) {
+            glyphText = glyphText.substring(0,glyphText.length-2) + "/";
+            bottomSplit = true;
+            return;
+        }
+        if (glyph[0] == "*") // can't happen with a bottom split
+            glyphText += "*";
+        if (!bottomSplit)
+            glyphText += "(";
         glyph.forEach(ch => {
+            if (ch == "*")
+                return;
             if (typeof(ch) == "object") {
                 ch.forEach(branch => {
                     if (branch.length == 1)
@@ -891,6 +934,7 @@ function processButtonGlyph() {
             }
         });
         glyphText += ")-";
+        bottomSplit = false;
     });
     input.defaultValue = glyphText;
     attemptCompute(true);
@@ -951,7 +995,7 @@ function attemptCompute(ignore=false) {
 function drawCScanvas(csCanvas) {
     var canvasCtx = csCanvas.getContext("2d");
     var ch = csCanvas.id.substring(7); // remove "canvas-"
-    var csGrid = Array.from(Array(9), () => new Array(9).fill(colorCode.backgroundColor));
+    var csGrid = Array.from(Array(9), () => new Array(9).fill("000000"));
     [...Array(9).keys()].forEach(col=>{csGrid[4][col]="ffffff"});
     csGrid[4][4]="bbbbbb";
     var csPixels = [];
@@ -1039,6 +1083,8 @@ shader_setting.addEventListener('transitioned', () => {
 
 var cmapSelect = document.getElementById("colormap-select");
 for (const [key, value] of Object.entries(cmaps)) {
+    if (key == "custom")
+        continue;
     var cmp = document.createElement('option');
     cmp.value = key;
     cmp.innerHTML = key[0].toUpperCase() + key.substring(1);

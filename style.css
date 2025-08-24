@@ -177,6 +177,11 @@ canvas {
     background-color: rgb(15, 10, 36);
 }
 
+#gradient-decor {
+    height:40px;
+    background-image: linear-gradient(0deg, rgb(15, 10, 36), rgb(0 0 0));
+}
+
 #input {
     position: relative;
     text-align: center;
