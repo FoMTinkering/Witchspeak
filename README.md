@@ -21,31 +21,31 @@ These are written as `(.../...)`. Sometimes, the bottom branch starts on the sam
 
 Glyphs are composed of what we call characters. Here's a comprehensive list of characters : 
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/characters.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/characters.png)
 
 A glyph can contain multiple characters, but the first character is very often spaced away from the branch ; when this is not the case we add an `i` character before the character, like below : 
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/i_showcase.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/i_showcase.png)
 
 To add space between characters, we can insert a `.` anywhere. You may notice that the first character in the previous example is also a `.` despite it not inserting a space. This is because the first character of each glyph (bottom half included) must be one of `.` or `1`, which indicate different branch lengths :
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/ruins_seal_stairs.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/ruins_seal_stairs.png)
 
 
 ### Complex Glyphs
 
 Some glyphs have a multiple branches, with characters before the branch split, and on both of the split branches. We call those complex glyphs, and they can be present on both the top and bottom glyph of a pair, such as this one :
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/complex_example.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/complex_example.png)
 
 Complex glyphs come in two types, according to the vertical branching character, being `^`, representing a diagonal branching pattern, or `|`, being a vertical branching.
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/complex_doubles.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/complex_doubles.png)
 
 Complex glyphs are written as `(...^[X][Y])`, with `...` being all characters before the branching point, `X` being all characters in the TOP branch and `Y` being all characters in the BOTTOM branch. 
 Note that in the bottom glyph of a pair, "TOP" and "BOTTOM" will be flipped due to the whole glyph being upside down.
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/ruins_seal_stairs.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/ruins_seal_stairs.png)
 
 If `X` or `Y` is a single character, the `[]` brackets can be removed (many examples of that are shown in this page).
 Since the first `[X]` contains redundant information, writing `(...^X[Y])` is also valid, even if `X` contains multiple characters.
@@ -63,9 +63,9 @@ If a character of a height of 2 pixels is present on the top branch *and* a `b` 
 The website allows users to display their Witchspeak sentences in different ways according to preference.
 The method that was used to render all the examples in the previous section is the default "colored-per-character" mode, which is labeled Default on the website. Each character's color can be changed using the buttons in the bottom half of the page : 
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/colorselect.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/colorselect.png)
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/colorselect_display.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/colorselect_display.png)
 
 The default colors for each of these was shown at the beginning of this page.
 
@@ -73,34 +73,34 @@ The default colors for each of these was shown at the beginning of this page.
 
 If you want to see how the glyph looks as a unified color, you don't have to change each of the characters' colors one by one. We have a display mode called Custom that achieves exactly that :
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/earth_seal_custom_color.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/earth_seal_custom_color.png)
 
 ### Per-pixel color
 
 You can also color glyphs individually according to a gradient colormap, out of a list of suggested colormaps. The pixels are drawn in the order the parser processes them, so this could help you understand in what order the glyphs are drawn, according to our method.
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/restore_pixel_color.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/restore_pixel_color.png)
 
 ### Per-glyph color
 
 Another way of coloring the glyphs is to color every pixel belonging to a glyph in a fixed color, but change each glyph's color gradually along the sentence, following the same colormaps.
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/seridia_glyph_color.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/seridia_glyph_color.png)
 
 ### Shading and background color
 
 Many of the visible Witchspeak sentences in the games are etched into stone, so there are "shadow" pixels above every drawn pixel of the glyph, to give an illusion of depth. We've included an option to add those in, with a slider to increse the intensity of the effect. This effect blends with the chosen background color seamlessly, so you can activate shading without having to worry about the background color.
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/seridia_shading_control.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/seridia_shading_control.png)
 
 
 ### Custom canvas filters
 
 WIP, adding some cool effects for you to display your glyphs with some amazing visuals!
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/filter_wip.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/filter_wip.png)
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/main/readme_files/filter_wip2.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/filter_wip2.png)
 
 
 ## Input methods
