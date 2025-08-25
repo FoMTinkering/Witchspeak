@@ -228,7 +228,7 @@ canvas {
 .operation-options {
     width: 80px;
     height: 91px;
-    margin-left: -25px;
+    margin-left: -145px;
     display:grid;
     position: absolute;
     align-items: center;
@@ -254,6 +254,19 @@ canvas {
     cursor:pointer;
     pointer-events: none;
 }
+
+.format-div {
+    display: flex;
+}
+
+.format-label {
+    font-family:'Consolas';  
+    color:aliceblue;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 110px;
+}
+
 
 #color-selector-table {
     color:aliceblue;

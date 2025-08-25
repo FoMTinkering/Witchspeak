@@ -110,11 +110,11 @@ WIP, adding some cool effects for you to display your glyphs with some amazing v
 
 To create a sentence, type a valid sentence in the textbox, or set the Color/Input switch to Input, and click on the buttons to add glyphs and characters!
 
-- Clikcing on the `+` creates a new glyph
+- Clicking on the `+` creates a new glyph
 - If you've created a complex glyph by clicking on `^` or `|` :
   - type in the characters for the TOP branch
   - click on the `→` button to move to the bottom branch, and add characters there
-- Clikcing on the `↓` adds a glyph on the bottom of the horizontal line
+- Clicking on the `↓` adds a glyph on the bottom of the horizontal line
   - clicking on the button again after creating a bottom glyph will toggle the `*` feature
 - Clicking on `«` will undo the last placed character
 - Clicking on the button below will undo the last **glyph**
