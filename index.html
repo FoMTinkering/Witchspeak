@@ -13,8 +13,8 @@
                 <option value="pixel">Pixel</option>
                 <option value="custom">Custom</option>
             </select>
-            <select name="colormap-select" id="colormap-select" class="selection" onchange="onChangeCMap(this)">
-            </select>
+            <select name="colormap-select" id="colormap-select" class="selection" onchange="onChangeCMap(this)"></select>
+            <a class="btn" id="randomize-button" onclick="randomizeCMap()"><i class="fa fa-random" style="margin-top: 3px;margin-left: 5px;"></i></a>
             <input type="color" id="custom-color" value="#ffffff">
             <label class="checkbox-label" for="add-shading" style="margin-left:10px;">Render Shading</label><br>
             <input type="checkbox" id="add-shading" name="add-shading" onchange="onShowShadingChange(this)">

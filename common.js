@@ -9,10 +9,14 @@ function onChangeColorSetting(obj) {
 
     var customColor = document.getElementById("custom-color");
     var cmapSelect = document.getElementById("colormap-select");
+    var randomize = document.getElementById("randomize-button");
     switch (color_setting) {
         case "custom":
             cmapSelect.style.width = "0px";
             cmapSelect.style.opacity = "0";
+
+            randomize.style.width = "0px";
+            randomize.style.opacity = "0";
 
             customColor.style.visibility = "visible";
             customColor.style.width = "25px";
@@ -30,11 +34,18 @@ function onChangeColorSetting(obj) {
             cmapSelect.style.visibility = "visible";
             cmapSelect.style.width = "80px";
             cmapSelect.style.opacity = "1";
+            if(activeColormap == "random") {
+                randomize.style.visibility = "visible";
+                randomize.style.width = "25";
+                randomize.style.opacity = "1";
+            }
             colorCode.mainlineColor = evaluateCmap(cmaps[activeColormap], 0);
             break;
         default:
             cmapSelect.style.width = "0px";
             cmapSelect.style.opacity = "0";
+            randomize.style.width = "0px";
+            randomize.style.opacity = "0";
             customColor.style.width = "0px";
             customColor.style.opacity = "0";
             colorCode.mainlineColor = "ffffff";
@@ -72,6 +83,16 @@ function onChangeBackground(obj) {
 
 function onChangeCMap(obj) {
     activeColormap = obj.value;
+    var randomize = document.getElementById("randomize-button");
+    if(activeColormap == "random") {
+        randomize.style.visibility = "visible";
+        randomize.style.width = "25";
+        randomize.style.opacity = "1";
+    }
+    else {
+        randomize.style.width = "0px";
+        randomize.style.opacity = "0";
+    }
     colorCode.mainlineColor = evaluateCmap(cmaps[activeColormap], 0);
     attemptCompute(true);
 }
@@ -242,6 +263,10 @@ function switchSide() {
         buttonGlyphs.push(["/"]); // making this "*/" forces the immediate switching
         continueLastGlyph = false;
     }
+}
+
+function randomizeCMap() {
+    // insert randomization trigger here
 }
 
 
@@ -446,6 +471,10 @@ const cmaps = {
     "rainbow": {
         "values": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
         "colors": ["ff0000","ff9900","ccff00","33ff00","00ff66","00ffff","0066ff","3300ff","cc00ff","ff0099","ff0000"]
+    },
+    "random": {
+        "values": [0, 1],
+        "colors": ["ffffff","ffffff"]
     },
     "custom": {
         "values": [0, 1],
@@ -1315,6 +1344,14 @@ cmapSelect.addEventListener('transitionend', () => {
     if(cmapSelect.style.width == "0px") {
         cmapSelect.style.visibility = "hidden";
         cmapSelect.style.opacity = "0";
+    }
+});
+
+var randomize = document.getElementById("randomize-button");
+randomize.addEventListener('transitionend', () => {
+    if(randomize.style.width == "0px") {
+        randomize.style.visibility = "hidden";
+        randomize.style.opacity = "0";
     }
 });
 
