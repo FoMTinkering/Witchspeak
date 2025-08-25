@@ -45,7 +45,7 @@ Complex glyphs come in two types, according to the vertical branching character,
 Complex glyphs are written as `(...^[X][Y])`, with `...` being all characters before the branching point, `X` being all characters in the TOP branch and `Y` being all characters in the BOTTOM branch. 
 Note that in the bottom glyph of a pair, "TOP" and "BOTTOM" will be flipped due to the whole glyph being upside down.
 
-![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/ruins_seal_stairs.png)
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/complex_multiple.png)
 
 If `X` or `Y` is a single character, the `[]` brackets can be removed (many examples of that are shown in this page).
 Since the first `[X]` contains redundant information, writing `(...^X[Y])` is also valid, even if `X` contains multiple characters.
@@ -54,6 +54,9 @@ There is a final rule with complex glyphs : to conserve height, when the post-sp
 For example, the prevent a `b` on the bottom branch from touching the horizontal line, the branch is moved upward by one pixel.
 Similarly, to prevent a `2` on the top branch from touching the top (or bottom) of the image, the branch is moved downward by one pixel.
 If a character of a height of 2 pixels is present on the top branch *and* a `b` is present on the bottom branch, the sentence won't render, because it would be invalid.
+
+![](https://github.com/FoMTinkering/Witchspeak/blob/webapp/readme_files/height_variation.png)
+
 
 [//]: # (Similarly, characters of a height of 3 aren't allowed -- needs to be implemented)
 
