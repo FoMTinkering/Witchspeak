@@ -81,7 +81,7 @@ function onChangeBackground(obj) {
     attemptCompute(true);
 }
 
-function onChangeCMap(obj) {
+function onChangeCmap(obj) {
     activeColormap = obj.value;
     var randomize = document.getElementById("randomize-button");
     if(activeColormap == "random") {
@@ -265,11 +265,6 @@ function switchSide() {
     }
 }
 
-function randomizeCMap() {
-    // insert randomization trigger here
-}
-
-
 function vMult(v1, v2) {
     var vres = [];
     for (var i=0; i<v1.length; i++) {
@@ -380,6 +375,38 @@ function cmapPropagate(arr, cmap) {
     return arr;
 }
 
+function randomizeCmap() {
+    var cutoff = 2; // the lower this is, the darker the edges will be
+    var range = [...Array(11+2*cutoff).keys()].slice(cutoff,-cutoff);
+    var rlp = Math.random()*1.8+0.2; var rrp = Math.random()*1.8+0.2;
+    var glp = Math.random()*1.8+0.2; var grp = Math.random()*1.8+0.2;
+    var blp = Math.random()*1.8+0.2; var brp = Math.random()*1.8+0.2;
+    function apply(t) {
+        var r = 2.5*t**rlp*(1-t)**rrp;
+        var g = 2.5*t**glp*(1-t)**grp;
+        var b = 2.5*t**blp*(1-t)**brp; 
+        // factor of 2 caps off parametric functions at 1, 
+        // but 2.5 potential overflow is not a big deal as rgb values higher than 255 are capped
+        return Array(Math.floor(r*255), Math.floor(g*255), Math.floor(b*255));
+    }
+    var colors = [];
+    
+    range.forEach(t => {
+        var [r,g,b] = apply(t/(11+2*cutoff));
+        var color = "";
+        [r,g,b].forEach(c => {
+            if (c.length == 1)
+                color += "0"+c.toString(16);
+            else 
+                color += c.toString(16);
+        });
+        colors.push(color);
+    });
+    cmaps.random.colors = colors;
+    colorCode.mainlineColor = evaluateCmap(cmaps[activeColormap], 0);
+    attemptCompute(true);
+};
+
 function spacing(vx, vy) {
     return (n) => {
         var spaces = [];
@@ -473,8 +500,8 @@ const cmaps = {
         "colors": ["ff0000","ff9900","ccff00","33ff00","00ff66","00ffff","0066ff","3300ff","cc00ff","ff0099","ff0000"]
     },
     "random": {
-        "values": [0, 1],
-        "colors": ["ffffff","ffffff"]
+        "values": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        "colors": ["ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff"]
     },
     "custom": {
         "values": [0, 1],
