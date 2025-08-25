@@ -242,7 +242,8 @@ canvas {
 
 #color-selector-table {
     color:aliceblue;
-    display:block;
+    display:flex;
+    justify-content: space-around;
     width: auto;
     overflow-x: auto;
     height: 140px;
@@ -267,6 +268,7 @@ canvas {
   height:90px;
   cursor:pointer;
   opacity: 0;
+  display:grid;
 }
 input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
