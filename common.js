@@ -125,18 +125,60 @@ function doBranch() {
 
 function refreshGlyph() {
     buttonGlyphs = [];
-    processButtonGlyph()
+    continueLastGlyph = false;
+    processButtonGlyph();
 }
 
 function undoLastGlyph() {
-    if (buttonGlyphs.length > 0) {
+    var len = buttonGlyphs.length;
+    if (len > 0) {
         var popped = buttonGlyphs.pop(-1);
-        if (popped.includes("/")) {
-            buttonGlyphs.pop(-1);
-            if (popped.includes("*"))
-                buttonGlyphs[buttonGlyphs.length-1].pop(0); // remove "*" at start of glyph
+        if(len > 2) {
+            var last = buttonGlyphs[len-2]
+            if (last == ("/") || last == ("*/")) {
+                buttonGlyphs.pop(-1);
+                if (popped.includes("*"))
+                    buttonGlyphs[len-2].pop(0); // remove "*" at start of glyph
+            }
         }
     }
+    continueLastGlyph = buttonGlyphs.length > 0;
+    processButtonGlyph();
+}
+
+function undoLastInput() {
+    var len = buttonGlyphs.length;
+    if (len > 0) {
+        var glyph = buttonGlyphs[len-1];
+        var subGlyph = null
+        if(typeof(subGlyph = glyph[glyph.length-1]) == "object") {
+            var removal = subGlyph[subGlyph.length-1].pop(-1);
+            if(subGlyph[subGlyph.length-1].length == 0)
+                subGlyph.pop(-1);
+            if(subGlyph.length > 0) {
+                processButtonGlyph();
+                return;
+            }
+            else {
+                glyph.pop(-2);
+            }
+        }
+        glyph.pop(-1);
+        if(glyph.length == 1 && glyph[0] == '.') {
+            buttonGlyphs.pop(-1);
+            if(len > 2) {
+                var last = buttonGlyphs[len-2]
+                if (last == ("/") || last == ("*/")) {
+                    buttonGlyphs.pop(-1);
+                    if (last == "*/") {
+                        buttonGlyphs[len-3].splice(0, 1);
+                    }
+                }
+            }
+        }
+    }
+    continueLastGlyph = buttonGlyphs.length > 0;
+    processButtonGlyph();
 }
 
 function toggleSplit() {
@@ -344,7 +386,7 @@ const glossary = {
         "c": [Array(1, 1)],
         "'": [Array(-2, -1)],
     },
-    "spacings": {"^": spacing(-1, 1), "|": spacing(-1, 0), ".": spacing(0, 1)},
+    "spacings": {"^": spacing(-1, 1), "|": spacing(-1, 0), ".": spacing(0, 1), "i": spacing(0, -1)},
 };
 
 const colorCode = {
@@ -366,7 +408,7 @@ const colorCode = {
         "c": "ffad00",
         "'": "ffad00",
     },
-    "spacings": {"^": "ff3dff", "|": "ff3dff", ".": "ffffff"},
+    "spacings": {"^": "ff3dff", "|": "ff3dff", ".": "ffffff", "i": "00ff00"},
     "shadingAmount":0.5,
     "backgroundColor":"000000",
     "mainlineColor":"ffffff"
@@ -915,8 +957,36 @@ class Glyph {
     
 }
 
-function addCharacter(button) {
-    var ch = button.id.substring(7) // remove "button-"
+// function addText(text) {
+//     buttonGlyphs = [];
+//     continueLastGlyph = false;
+//
+//     var count = 0;
+//     var asterisk = text.indexOf('*');
+//     var last = text.indexOf(')');
+//     if(last == -1)
+//         last = text.length-1;
+//
+//     while(last != -1) {
+//         var start = text.indexOf('(', count);
+//         if(start == -1)
+//             break;
+//         if(asterisk != -1 && asterisk < start) {
+//             start -= 1;
+//             asterisk = text.indexOf('*', start+1);
+//         }
+//
+//         var glyph = text.substring(start, last+1);
+//         console.log(glyph);
+//
+//         count = last+1;
+//         last = text.indexOf(')', count);
+//         if(last == -1)
+//             last = text.length-1;
+//     }
+// }
+
+function tryAppendCharacter(ch) {
     if (!continueLastGlyph) {
         buttonGlyphs.push([".", ch]);
         continueLastGlyph = true;
@@ -949,6 +1019,11 @@ function addCharacter(button) {
             currentGlyph.push(ch);
         }
     }
+}
+
+function addCharacter(button) {
+    var ch = button.id.substring(7) // remove "button-"
+    tryAppendCharacter(ch);
     processButtonGlyph();
 }
 
@@ -995,7 +1070,7 @@ function processButtonGlyph() {
         glyphText += ")-";
         bottomSplit = false;
     });
-    input.defaultValue = glyphText;
+    input.value = input.defaultValue = glyphText;
     attemptCompute(true);
 }
 
@@ -1034,6 +1109,8 @@ function attemptCompute(ignore=false) {
         input = document.getElementById("input");    
         if (document.activeElement != input) 
             return "input are not selected";
+
+        // addText(input.innerHTML);
     }
    var sentence = ""+input.innerHTML;
     if (!checkValid(sentence))

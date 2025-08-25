@@ -210,6 +210,15 @@ canvas {
     background-color: rgb(15, 10, 36);
 }
 
+.operation-options {
+    width: 80px;
+    height: 91px;
+    margin-left: -25px;
+    display:grid;
+    position: absolute;
+    align-items: center;
+}
+
 .format-options {
     width: 80px;
     height: 91px;

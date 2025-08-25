@@ -18,7 +18,7 @@
             <input type="color" id="custom-color" value="#ffffff">
             <label class="checkbox-label" for="add-shading" style="margin-left:10px;">Render Shading</label><br>
             <input type="checkbox" id="add-shading" name="add-shading" onchange="onShowShadingChange(this)">
-            <input type="range" id="shade-amount" name="shade-amount" min="0" max="1.0" step="0.05" oninput="onChangeShadeValue(this)"/>
+            <input type="range" id="shade-amount" name="shade-amount" min="-1.0" max="2.5" step="0.05" oninput="onChangeShadeValue(this)"/>
 
             <a class="btn" id="download-button" href="" download><i class="fa fa-download" style="margin-top: 3px;margin-left: 5px;"></i></a>
         </div>
@@ -77,14 +77,23 @@
         </table>
         <table id="spacings-color-selector-table">
             <tr>
+                <th></th>
                 <th>^</th>
                 <th>|</th>
                 <th>.</th>
+                <th>i</th>
+                <th></th>
             </tr>
             <tr>
+                <td class="operation-options">
+                    <a class="btn format-button" id="select-button-back"><i class="fa fa-backward" style="padding-right: 3px;" onclick="undoLastInput()"></i></a>
+                    <a class="btn format-button" id="select-button-undo"><i class="fa fa-undo" onclick="undoLastGlyph()"></i></a>
+                    <a class="btn format-button" id="select-button-refresh" onclick="refreshGlyph()"><i class="fa fa-refresh"></i></a>
+                </td>
                 <td class="color-selector" id="cs-^"></td>
                 <td class="color-selector" id="cs-|"></td>
                 <td class="color-selector" id="cs-."></td>
+                <td class="color-selector" id="cs-i"></td>
                 <td class="format-options">
                     <a class="btn format-button" id="select-button-plus" onclick="goNextGlyph()"><i class="fa fa-plus"></i></a>
                     <a class="btn format-button" id="select-button-right" onclick="doBranch()"><i class="fa fa-arrow-right"></i></a>
