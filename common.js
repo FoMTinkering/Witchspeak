@@ -1,32 +1,42 @@
 // temporary variable, should eventually be replaced with combobox (on page creation below)
 var activeColormap = "peachy";
-
+var colorInputToggle = 0;
 var use_shading = false;
 
 function onChangeColorSetting(obj) {
     var color_setting = obj.value
     obj.blur();
 
-    var setting = document.getElementById("custom-color");
+    var customColor = document.getElementById("custom-color");
+    var cmapSelect = document.getElementById("colormap-select");
     switch (color_setting) {
         case "custom":
-            setting.style.visibility = "visible";
-            setting.style.width = "25px";
-            setting.style.height = "18px";
-            setting.style.opacity = "1";
+            cmapSelect.style.width = "0px";
+            cmapSelect.style.opacity = "0";
 
-            var new_color = setting.value.substring(1);
+            customColor.style.visibility = "visible";
+            customColor.style.width = "25px";
+            customColor.style.opacity = "1";
+
+            var new_color = customColor.value.substring(1);
             [cmaps.custom.colors[0], cmaps.custom.colors[1]] = [new_color, new_color];
             colorCode.mainlineColor = new_color;
             break;
+        case "glyph":
         case "pixel":
-            setting.style.width = "0px";
-            setting.style.height = "0px";
+            customColor.style.width = "0px";
+            customColor.style.opacity = "0";
+
+            cmapSelect.style.visibility = "visible";
+            cmapSelect.style.width = "80px";
+            cmapSelect.style.opacity = "1";
             colorCode.mainlineColor = evaluateCmap(cmaps[activeColormap], 0);
             break;
         default:
-            setting.style.width = "0px";
-            setting.style.height = "0px";
+            cmapSelect.style.width = "0px";
+            cmapSelect.style.opacity = "0";
+            customColor.style.width = "0px";
+            customColor.style.opacity = "0";
             colorCode.mainlineColor = "ffffff";
     }
     attemptCompute(true);
@@ -48,10 +58,190 @@ function onShowShadingChange(obj) {
     attemptCompute(true);
 }
 
-function onChangeShadeValue(obj)
-{
+function onChangeShadeValue(obj) {
     colorCode.shadingAmount = obj.value;
     attemptCompute(true);
+}
+
+function onChangeBackground(obj) {
+    colorCode.backgroundColor = obj.value.substring(1);
+    document.getElementById("canvas-container").style.backgroundColor = colorCode.backgroundColor;
+    document.getElementById("gradient-decor").style.backgroundImage = "linear-gradient(0deg, rgb(15, 10, 36), #"+colorCode.backgroundColor+")";
+    attemptCompute(true);
+}
+
+function onChangeCMap(obj) {
+    activeColormap = obj.value;
+    colorCode.mainlineColor = evaluateCmap(cmaps[activeColormap], 0);
+    attemptCompute(true);
+}
+
+function toggleOnClick(obj) {
+    colorInputToggle = obj.value = Math.abs(obj.value-1);
+    var activeColor = "aliceblue";
+    var inactiveColor = "rgb(176, 167, 212)";
+    var inactiveBorderColor = "rgb(15, 10, 36)";
+
+    var state = colorInputToggle == 0;
+    var labels = document.getElementsByClassName("switch-label");
+    labels[0].style.color = state ? activeColor:inactiveColor;
+    labels[0].style.borderColor = state ? activeColor:inactiveBorderColor;
+    labels[1].style.color = state ? inactiveColor:activeColor;
+    labels[1].style.borderColor = state ? inactiveBorderColor:activeColor;
+
+    var operators = document.getElementsByClassName("format-button");
+    for(var i=0; i<operators.length; i++) {
+        operators[i].style.color = operators[i].style.borderColor = (state ? inactiveColor:activeColor);
+        operators[i].style.pointerEvents = state ? "none":"all";
+    }
+
+    var elements = document.getElementsByClassName("color-swatch");
+    for (var i=0; i<elements.length; i++) {
+        elements[i].style.zIndex = state ? 1:0;
+    }
+
+    elements = document.getElementsByClassName("input-button");
+    for (var i=0; i<elements.length; i++) {
+        elements[i].style.zIndex = state ? 0:1;
+    }
+
+    buttonType = state ? "color select":"glyph input";
+}
+
+function onToggleUpdate(obj) {
+    obj.value = colorInputToggle;
+}
+
+function goNextGlyph() {
+    continueLastGlyph = false;
+}
+
+function doBranch() {
+    var currentGlyph = buttonGlyphs[buttonGlyphs.length-1];
+    if (typeof(currentGlyph[currentGlyph.length-1]) != "object")
+        return;
+    buttonBranch = false;
+}
+
+function refreshGlyph() {
+    buttonGlyphs = [];
+    continueLastGlyph = false;
+    processButtonGlyph();
+}
+
+function undoLastGlyph() {
+    var len = buttonGlyphs.length;
+    if (len > 0) {
+        var popped = buttonGlyphs.pop(-1);
+        if(len > 2) {
+            var last = buttonGlyphs[len-2]
+            if (last == ("/") || last == ("*/")) {
+                buttonGlyphs.pop(-1);
+                if (popped.includes("*"))
+                    buttonGlyphs[len-2].pop(0); // remove "*" at start of glyph
+            }
+        }
+    }
+    continueLastGlyph = buttonGlyphs.length > 0;
+    processButtonGlyph();
+}
+
+function undoLastInput() {
+    var len = buttonGlyphs.length;
+    if (len > 0) {
+        var glyph = buttonGlyphs[len-1];
+        var subGlyph = null
+        if(typeof(subGlyph = glyph[glyph.length-1]) == "object") {
+            var removal = subGlyph[subGlyph.length-1].pop(-1);
+            if(subGlyph[subGlyph.length-1].length == 0)
+                subGlyph.pop(-1);
+            if(subGlyph.length > 0) {
+                processButtonGlyph();
+                return;
+            }
+            else {
+                glyph.pop(-2);
+            }
+        }
+        glyph.pop(-1);
+        if(glyph.length == 1 && glyph[0] == '.') {
+            buttonGlyphs.pop(-1);
+            if(len > 2) {
+                var last = buttonGlyphs[len-2]
+                if (last == ("/") || last == ("*/")) {
+                    buttonGlyphs.pop(-1);
+                    if (last == "*/") {
+                        buttonGlyphs[len-3].splice(0, 1);
+                    }
+                }
+            }
+        }
+    }
+    continueLastGlyph = buttonGlyphs.length > 0;
+    processButtonGlyph();
+}
+
+function toggleSplit() {
+    var index = -1;
+    var toggleState = false;
+    for(var i=buttonGlyphs.length-1; i>=0; i--) {
+        if(buttonGlyphs[i] == ('/')) {
+            toggleState = true;
+            index = i;
+            break;
+        }
+        else if(buttonGlyphs[i] == ('*/'))
+        {
+            toggleState = false;
+            index = i;
+            break;
+        }
+    }
+
+    if(toggleState) {
+        buttonGlyphs[index].splice(buttonGlyphs[index].lastIndexOf("/"), 1, "*/");
+    }
+    else {
+        buttonGlyphs[index].splice(buttonGlyphs[index].lastIndexOf("*/"), 1, "/");
+        for(var i=index; i>=0; i--) {
+            if(buttonGlyphs[i].includes('*')) {
+                buttonGlyphs[i].splice(0, 1);
+            }
+        }
+    }
+    processButtonGlyph();
+}
+
+function switchSide() {
+    var currentGlyph = buttonGlyphs[buttonGlyphs.length-1];
+    if(currentGlyph == '/' || currentGlyph == '*/') {
+        toggleSplit();
+        return;
+    }
+
+    if (!continueLastGlyph) { // allows (/.54) and the likes to be valid
+        buttonGlyphs.push([]);
+        buttonGlyphs.push(["/"]);
+        return;
+    }
+
+    var validGlyph = true;
+    if (buttonGlyphs.length > 1) {
+        if (buttonGlyphs[buttonGlyphs.length-2].includes("/") || buttonGlyphs[buttonGlyphs.length-2].includes("*/")) {
+            toggleSplit();
+            validGlyph = false;
+        }
+    }
+
+    currentGlyph.forEach(ch => {
+        if ((typeof(ch) == "object") & (ch.length != 2)) {
+            validGlyph = false;
+        }
+    });
+    if (validGlyph) {
+        buttonGlyphs.push(["/"]); // making this "*/" forces the immediate switching
+        continueLastGlyph = false;
+    }
 }
 
 
@@ -93,6 +283,18 @@ function darken(color, value) {
     });
     return newColor;
 }
+
+// function darken(color, value) {
+//     var [R,G,B] = [color.substring(0,2), color.substring(2,4), color.substring(4,6)];
+//     var newColor = "";
+//     [...Array(3).keys()].forEach(i=>{
+//         c = Math.round(parseInt([R,G,B][i],16)*value).toString(16);
+//         if (c.length == 1)
+//             c = "0"+c;
+//         newColor += c;
+//     });
+//     return newColor;
+// }
 
 
 function findMax(arr) {
@@ -184,7 +386,7 @@ const glossary = {
         "c": [Array(1, 1)],
         "'": [Array(-2, -1)],
     },
-    "spacings": {"^": spacing(-1, 1), "|": spacing(-1, 0), ".": spacing(0, 1)},
+    "spacings": {"^": spacing(-1, 1), "|": spacing(-1, 0), ".": spacing(0, 1), "i": spacing(0, -1)},
 };
 
 const colorCode = {
@@ -206,7 +408,7 @@ const colorCode = {
         "c": "ffad00",
         "'": "ffad00",
     },
-    "spacings": {"^": "ff3dff", "|": "ff3dff", ".": "ffffff"},
+    "spacings": {"^": "ff3dff", "|": "ff3dff", ".": "ffffff", "i": "00ff00"},
     "shadingAmount":0.5,
     "backgroundColor":"000000",
     "mainlineColor":"ffffff"
@@ -755,6 +957,122 @@ class Glyph {
     
 }
 
+// function addText(text) {
+//     buttonGlyphs = [];
+//     continueLastGlyph = false;
+//
+//     var count = 0;
+//     var asterisk = text.indexOf('*');
+//     var last = text.indexOf(')');
+//     if(last == -1)
+//         last = text.length-1;
+//
+//     while(last != -1) {
+//         var start = text.indexOf('(', count);
+//         if(start == -1)
+//             break;
+//         if(asterisk != -1 && asterisk < start) {
+//             start -= 1;
+//             asterisk = text.indexOf('*', start+1);
+//         }
+//
+//         var glyph = text.substring(start, last+1);
+//         console.log(glyph);
+//
+//         count = last+1;
+//         last = text.indexOf(')', count);
+//         if(last == -1)
+//             last = text.length-1;
+//     }
+// }
+
+function tryAppendCharacter(ch) {
+    if (!continueLastGlyph) {
+        buttonGlyphs.push([".", ch]);
+        continueLastGlyph = true;
+    }
+    else {
+        var currentGlyph = buttonGlyphs[buttonGlyphs.length-1]; // [".", ch, ...]
+        var lastChar = currentGlyph[currentGlyph.length-1]; // ...
+        var hasObject = false;
+        currentGlyph.forEach(ch => {
+            if (typeof(ch) == "object")
+                hasObject = true;
+        })
+        if (["|", "^"].includes(lastChar) & !hasObject) {
+            currentGlyph.push([[ch]])
+            buttonBranch = true; // needs to be set to false before switching again
+        } else if (typeof(lastChar) == "object") {
+            if (["|", "^"].includes(ch))
+                throw new Error("cannot make glyph with more than two branches");
+            if (lastChar.length <= 2) {
+                if (buttonBranch) 
+                    lastChar[lastChar.length-1].push(ch);
+                else {
+                    if (lastChar.length == 1) {
+                        lastChar.push([ch]);
+                        buttonBranch = true;
+                    }
+                }
+            }
+        } else {
+            currentGlyph.push(ch);
+        }
+    }
+}
+
+function addCharacter(button) {
+    var ch = button.id.substring(7) // remove "button-"
+    tryAppendCharacter(ch);
+    processButtonGlyph();
+}
+
+function processButtonGlyph() {
+    var glyphText = ""
+    var bottomSplit = false;
+    // prepare *-split glyphs
+    [...Array(buttonGlyphs.length).keys()].forEach(i => {
+        glyph = buttonGlyphs[i];
+        if (glyph == "*/") {
+            if (!buttonGlyphs[i-1].includes("*"))
+                buttonGlyphs[i-1].splice(0,0,"*");
+        }            
+    })
+    buttonGlyphs.forEach(glyph => {
+        if (glyph.includes("/") || glyph.includes("*/")) {
+            glyphText = glyphText.substring(0,glyphText.length-2) + "/";
+            bottomSplit = true;
+            return;
+        }
+        if (glyph[0] == "*") // can't happen with a bottom split
+            glyphText += "*";
+        if (!bottomSplit)
+            glyphText += "(";
+        glyph.forEach(ch => {
+            if (ch == "*")
+                return;
+            if (typeof(ch) == "object") {
+                ch.forEach(branch => {
+                    if (branch.length == 1)
+                        glyphText += branch[0];
+                    else {
+                        glyphText += "[";
+                        branch.forEach(subCh => {
+                            glyphText += subCh;
+                        });
+                        glyphText += "]";
+                    }
+                })
+            } else {
+                glyphText += ch;
+            }
+        });
+        glyphText += ")-";
+        bottomSplit = false;
+    });
+    input.value = input.defaultValue = glyphText;
+    attemptCompute(true);
+}
 
 
 function drawPixels() {
@@ -769,7 +1087,7 @@ function drawPixels() {
 function clearGrid() {
     for (var row = 0; row < (2*height+1); row++) {
         for (var col = 0; col < 192; col++) {
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "#"+colorCode.backgroundColor;
             ctx.fillRect(col * step, row * step, step, step);
         }
     }
@@ -791,6 +1109,8 @@ function attemptCompute(ignore=false) {
         input = document.getElementById("input");    
         if (document.activeElement != input) 
             return "input are not selected";
+
+        // addText(input.innerHTML);
     }
    var sentence = ""+input.innerHTML;
     if (!checkValid(sentence))
@@ -802,13 +1122,16 @@ function attemptCompute(ignore=false) {
         return "no length";
     drawPixels();
     canvas.style.left = 50-50*Math.min(reading.length/192, 1)+"%";
+
+    document.getElementById("download-button").href = canvas.toDataURL();
+
     return sentence;
 }
 
 function drawCScanvas(csCanvas) {
     var canvasCtx = csCanvas.getContext("2d");
     var ch = csCanvas.id.substring(7); // remove "canvas-"
-    var csGrid = Array.from(Array(9), () => new Array(9).fill(colorCode.backgroundColor));
+    var csGrid = Array.from(Array(9), () => new Array(9).fill("000000"));
     [...Array(9).keys()].forEach(col=>{csGrid[4][col]="ffffff"});
     csGrid[4][4]="bbbbbb";
     var csPixels = [];
@@ -874,8 +1197,7 @@ input.addEventListener("keydown", (e) => {
 
 color_setting = document.getElementById("custom-color");
 color_setting.addEventListener('transitionend', () => {
-    color_setting = document.getElementById("custom-color");
-    if(color_setting.style.width == "0px" && color_setting.style.height == "0px") {
+    if(color_setting.style.width == "0px") {
         color_setting.style.visibility = "hidden";
         color_setting.style.opacity = "0";
     }
@@ -895,14 +1217,43 @@ shader_setting.addEventListener('transitioned', () => {
     }
 });
 
+var cmapSelect = document.getElementById("colormap-select");
+for (const [key, value] of Object.entries(cmaps)) {
+    if (key == "custom")
+        continue;
+    var cmp = document.createElement('option');
+    cmp.value = key;
+    cmp.innerHTML = key[0].toUpperCase() + key.substring(1);
+    cmapSelect.appendChild(cmp);
+}
+cmapSelect.value = activeColormap;
+cmapSelect.addEventListener('transitionend', () => {
+    if(cmapSelect.style.width == "0px") {
+        cmapSelect.style.visibility = "hidden";
+        cmapSelect.style.opacity = "0";
+    }
+});
+
 // create the default glyph
 attemptCompute(true);
 
+
+// set buttonType to color select, this should be a checkbox or switch or something
+var buttonType = "color select";
+
+// create empty list of glyphs determined by button presses 
+// these will be parsed if the buttonType is "glyph input"
+var buttonGlyphs = [];
+var continueLastGlyph = false;
+var buttonBranch = false;
+
+// create the buttons' color swatches
 var csList = document.getElementsByClassName("color-selector");
 for (cs of csList) {
     ch = cs.id.substring(3); // removes "cs-""
-    var csCanvas = document.createElement('canvas');
+
     // create canvas and set its width and height to accomodate the character
+    var csCanvas = document.createElement('canvas');
     csCanvas.width = 90;
     csCanvas.height = 90;
     csCanvas.style.width = csCanvas.width + "px";
@@ -918,6 +1269,15 @@ for (cs of csList) {
     colorswatch.setAttribute("type", "color");
     colorswatch.setAttribute("value", "#"+colorCode.characters[ch]);
     colorswatch.setAttribute("oninput", "updateColors(this)");
+    colorswatch.style.zIndex = 1;
     cs.appendChild(colorswatch);
+
+    // create button over the canvas
+    button = document.createElement("button");
+    button.id = "button-"+ch;
+    button.setAttribute("class", "input-button");
+    button.setAttribute("onclick", "addCharacter(this)");
+    button.style.zIndex = 0;
+    cs.appendChild(button);
 }
 
