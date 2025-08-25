@@ -202,7 +202,7 @@ function undoLastInput() {
     processButtonGlyph();
 }
 
-function toggleSplit() {
+function toggleSplit(refresh = true) {
     var index = -1;
     var toggleState = false;
     for(var i=buttonGlyphs.length-1; i>=0; i--) {
@@ -230,13 +230,14 @@ function toggleSplit() {
             }
         }
     }
-    processButtonGlyph();
+    if(refresh)
+        processButtonGlyph();
 }
 
-function switchSide() {
+function switchSide(refresh = true) {
     var currentGlyph = buttonGlyphs[buttonGlyphs.length-1];
     if(currentGlyph == '/' || currentGlyph == '*/') {
-        toggleSplit();
+        toggleSplit(refresh);
         return;
     }
 
@@ -249,7 +250,7 @@ function switchSide() {
     var validGlyph = true;
     if (buttonGlyphs.length > 1) {
         if (buttonGlyphs[buttonGlyphs.length-2].includes("/") || buttonGlyphs[buttonGlyphs.length-2].includes("*/")) {
-            toggleSplit();
+            toggleSplit(refresh);
             validGlyph = false;
         }
     }
@@ -1033,7 +1034,6 @@ function addText(text) {
         return;
 
     glyphs.forEach((glyph) => {
-        console.log(glyph);
         if(glyph.length <= 0)
             return;
 
@@ -1044,9 +1044,9 @@ function addText(text) {
         if(stacked != -1) {
             if(stacked != 0)
                 addInternal(content.substring(0, stacked));
-            switchSide();
+            switchSide(false);
             if(asterisk)
-                switchSide();
+                switchSide(false);
             continueLastGlyph = false;
         }
         addInternal(content.substring(stacked+1));
@@ -1055,6 +1055,7 @@ function addText(text) {
 }
 
 function addInternal(text) {
+    console.log(text);
     if(text.length == 0)
         return;
 
