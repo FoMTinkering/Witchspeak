@@ -1045,6 +1045,8 @@ function addText(text) {
             if(stacked != 0)
                 addInternal(content.substring(0, stacked));
             switchSide();
+            if(asterisk)
+                switchSide();
             continueLastGlyph = false;
         }
         addInternal(content.substring(stacked+1));

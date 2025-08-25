@@ -43,14 +43,14 @@
 }
 
 #custom-color {
-    max-height: 18px;
-    height: 18px;
+    max-height: 22px;
+    height: 22px;
     width: 0px;
     background-color: rgb(15, 10, 36);
     border: none;
     
     margin-top: 1px;
-    margin-left: 5px;
+    margin-left: -14px;
     visibility: hidden;
     opacity: 0;
 
