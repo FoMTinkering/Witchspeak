@@ -957,34 +957,117 @@ class Glyph {
     
 }
 
-// function addText(text) {
-//     buttonGlyphs = [];
-//     continueLastGlyph = false;
-//
-//     var count = 0;
-//     var asterisk = text.indexOf('*');
-//     var last = text.indexOf(')');
-//     if(last == -1)
-//         last = text.length-1;
-//
-//     while(last != -1) {
-//         var start = text.indexOf('(', count);
-//         if(start == -1)
-//             break;
-//         if(asterisk != -1 && asterisk < start) {
-//             start -= 1;
-//             asterisk = text.indexOf('*', start+1);
-//         }
-//
-//         var glyph = text.substring(start, last+1);
-//         console.log(glyph);
-//
-//         count = last+1;
-//         last = text.indexOf(')', count);
-//         if(last == -1)
-//             last = text.length-1;
-//     }
-// }
+function addText(text) {
+    buttonGlyphs = [];
+    continueLastGlyph = false;
+
+    var glyphs = text.match(re);
+    if(glyphs == null)
+        glyphs = [];
+
+    if(text.lastIndexOf(')') < text.lastIndexOf('(')) {
+        if(text.lastIndexOf(')') < text.lastIndexOf('*')) {
+            glyphs.push(text.substring(text.lastIndexOf('*')));
+        }
+        else
+            glyphs.push(text.substring(text.lastIndexOf('(')));
+    }
+
+    if(glyphs.length == 0)
+        return;
+
+    glyphs.forEach((glyph) => {
+        console.log(glyph);
+        if(glyph.length <= 0)
+            return;
+
+        var offset = glyph.includes(')') ? 0:1;
+        var asterisk = (glyph[0] == '*');
+        var content = glyph.substring(asterisk ? 2:1, glyph.length-1+offset);
+        var stacked = content.indexOf('/');
+        if(stacked != -1) {
+            if(stacked != 0)
+                addInternal(content.substring(0, stacked));
+            switchSide();
+            continueLastGlyph = false;
+        }
+        addInternal(content.substring(stacked+1));
+        continueLastGlyph = (offset == 1);
+    });
+}
+
+function addInternal(text) {
+    if(text.length == 0)
+        return;
+
+    var complex = -1;
+    complex = text.indexOf('^')
+    if(complex == -1)
+        complex = text.indexOf('|');
+
+    if(complex != -1) {
+        for(var i=0; i<complex; i++) {
+            if(i==0 && text[i] == '.')
+                continue;
+            tryAppendCharacter(text[i]);
+        }
+
+        tryAppendCharacter(text[complex]);        
+        if(complex < text.length-1 && text[complex+1] == '[') {
+            var index = complex+2;
+            while(index < text.length && text[index] != ']') {
+                tryAppendCharacter(text[index]);
+                index++;
+            }
+            if(index >= text.length)
+                return;
+            buttonBranch = false;
+            
+            if(index < text.length-1 && text[index+1] == '[') {
+                index = index+2;
+                while(index < text.length && text[index] != ']') {
+                    tryAppendCharacter(text[index]);
+                    index++;
+                }
+            }
+            else {
+                index = index+1;
+                while(index < text.length) {
+                    tryAppendCharacter(text[index]);
+                    index++;
+                }
+            }
+        }
+        else if(text.includes('['))
+        {
+            var index = complex+1;
+            while(index < text.length && text[index] != '[') {
+                tryAppendCharacter(text[index]);
+                index++;
+            }
+            buttonBranch = false;
+            
+            index = index+1;
+            while(index < text.length && text[index] != ']') {
+                tryAppendCharacter(text[index]);
+                index++;
+            }
+        }
+        else {
+            tryAppendCharacter(text[complex+1]);
+            buttonBranch = false;
+            tryAppendCharacter(text[complex+2]);
+        }
+    }
+    else {
+        for(var i=0; i<text.length; i++) {
+            if(i==0 && text[i] == '.')
+                continue;
+
+            tryAppendCharacter(text[i]);
+        }
+    }
+}
 
 function tryAppendCharacter(ch) {
     if (!continueLastGlyph) {
@@ -1025,6 +1108,7 @@ function addCharacter(button) {
     var ch = button.id.substring(7) // remove "button-"
     tryAppendCharacter(ch);
     processButtonGlyph();
+    
 }
 
 function processButtonGlyph() {
@@ -1110,7 +1194,7 @@ function attemptCompute(ignore=false) {
         if (document.activeElement != input) 
             return "input are not selected";
 
-        // addText(input.innerHTML);
+        addText(input.innerHTML);
     }
    var sentence = ""+input.innerHTML;
     if (!checkValid(sentence))
@@ -1281,3 +1365,4 @@ for (cs of csList) {
     cs.appendChild(button);
 }
 
+addText(input.innerHTML);
