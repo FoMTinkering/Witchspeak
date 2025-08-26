@@ -202,7 +202,7 @@ function undoLastInput() {
     processButtonGlyph();
 }
 
-function toggleSplit(refresh = true) {
+function toggleSplit() {
     var index = -1;
     var toggleState = false;
     for(var i=buttonGlyphs.length-1; i>=0; i--) {
@@ -230,14 +230,13 @@ function toggleSplit(refresh = true) {
             }
         }
     }
-    if(refresh)
-        processButtonGlyph();
+    processButtonGlyph();
 }
 
-function switchSide(refresh = true) {
+function switchSide() {
     var currentGlyph = buttonGlyphs[buttonGlyphs.length-1];
     if(currentGlyph == '/' || currentGlyph == '*/') {
-        toggleSplit(refresh);
+        toggleSplit();
         return;
     }
 
@@ -250,7 +249,7 @@ function switchSide(refresh = true) {
     var validGlyph = true;
     if (buttonGlyphs.length > 1) {
         if (buttonGlyphs[buttonGlyphs.length-2].includes("/") || buttonGlyphs[buttonGlyphs.length-2].includes("*/")) {
-            toggleSplit(refresh);
+            toggleSplit();
             validGlyph = false;
         }
     }
@@ -1034,6 +1033,7 @@ function addText(text) {
         return;
 
     glyphs.forEach((glyph) => {
+        console.log(glyph);
         if(glyph.length <= 0)
             return;
 
@@ -1044,9 +1044,7 @@ function addText(text) {
         if(stacked != -1) {
             if(stacked != 0)
                 addInternal(content.substring(0, stacked));
-            switchSide(false);
-            if(asterisk)
-                switchSide(false);
+            switchSide();
             continueLastGlyph = false;
         }
         addInternal(content.substring(stacked+1));
@@ -1055,7 +1053,6 @@ function addText(text) {
 }
 
 function addInternal(text) {
-    console.log(text);
     if(text.length == 0)
         return;
 
@@ -1387,7 +1384,7 @@ randomize.addEventListener('transitionend', () => {
 
 // create the default glyph
 attemptCompute(true);
-
+randomizeCmap();
 
 // set buttonType to color select, this should be a checkbox or switch or something
 var buttonType = "color select";

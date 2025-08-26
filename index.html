@@ -4,123 +4,109 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body onload="">
-    <div id="top-half-container">
-        <div id="checkbox-container">
-            <!-- <input id="checkbox-swatch" type="color" value="#ff0000" /> -->
-            <label class="checkbox-label" for="use-color">Color Options</label><br>
-            <select name="use-color" id="use-color" class="selection" onchange="onChangeColorSetting(this)">
-                <option value="default">Default</option>
-                <option value="glyph">Glyph</option>
-                <option value="pixel">Pixel</option>
-                <option value="custom">Custom</option>
-            </select>
-            <select name="colormap-select" id="colormap-select" class="selection" onchange="onChangeCmap(this)"></select>
-            <a class="btn" id="randomize-button" onclick="randomizeCmap()"><i class="fa fa-random" style="margin-top: 3px;margin-left: 5px;"></i></a>
-            <input type="color" id="custom-color" value="#ffffff">
-            <label class="checkbox-label" for="add-shading" style="margin-left:10px;">Render Shading</label><br>
-            <input type="checkbox" id="add-shading" name="add-shading" onchange="onShowShadingChange(this)">
-            <input type="range" id="shade-amount" name="shade-amount" min="-1.0" max="2.5" step="0.05" oninput="onChangeShadeValue(this)"/>
+    <div id="flexbox-container">
+        <div id="top-half-container">
+            <div id="checkbox-container">
+                <!-- <input id="checkbox-swatch" type="color" value="#ff0000" /> -->
+                <label class="checkbox-label" for="use-color">Color Options</label><br>
+                <select name="use-color" id="use-color" class="selection" onchange="onChangeColorSetting(this)">
+                    <option value="default">Default</option>
+                    <option value="glyph">Glyph</option>
+                    <option value="pixel">Pixel</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <select name="colormap-select" id="colormap-select" class="selection" onchange="onChangeCmap(this)"></select>
+                <a class="btn" id="randomize-button" onclick="randomizeCmap()"><i class="fa fa-random" style="margin-top: 3px;margin-left: 5px;"></i></a>
+                <input type="color" id="custom-color" value="#ffffff">
+                <label class="checkbox-label" for="add-shading" style="margin-left:10px;">Render Shading</label><br>
+                <input type="checkbox" id="add-shading" name="add-shading" onchange="onShowShadingChange(this)">
+                <input type="range" id="shade-amount" name="shade-amount" min="-1.0" max="2.5" step="0.05" oninput="onChangeShadeValue(this)"/>
 
-            <a class="btn" id="download-button" href="" download><i class="fa fa-download" style="margin-top: 3px;margin-left: 5px;"></i></a>
+                <a class="btn" id="download-button" href="" download><i class="fa fa-download" style="margin-top: 3px;margin-left: 5px;"></i></a>
+            </div>
+            <div id="canvas-container">
+                <input type="color" id="background-color" value="#000000" oninput="onChangeBackground(this)">
+                <canvas id="grid"></canvas>
+            </div>
+            <div id="gradient-decor"></div>
+            <div id="input-container">
+                <textarea id="input">(.|11)-*(.'72/..8)-(..8)-*(..C/.39)-(.8.8/.2|11)-(/.54)-*(..8/.54)-*(.^1a/.^1a)-6</textarea>
+            </div>
         </div>
-        <div id="canvas-container">
-            <input type="color" id="background-color" value="#000000" oninput="onChangeBackground(this)">
-            <canvas id="grid"></canvas>
+        <div id="middle-container">
         </div>
-        <div id="gradient-decor"></div>
-        <div id="input-container">
-            <textarea id="input">(.|11)-*(.'72/..8)-(..8)-*(..C/.39)-(.8.8/.2|11)-(/.54)-*(..8/.54)-*(.^1a/.^1a)-6</textarea>
-        </div>
-    </div>
-    <div id="bottom-container">
-        <div id="side-panel">
-            <label class="switch-label" id="color-switch-label" for="switch-box" style="color: aliceblue;border-color:aliceblue">Color</label>
-            <input type="range" id="switch-box" name="switch-box" min="0" max="1" step="1" value="0" onclick="toggleOnClick(this)" oninput="onToggleUpdate(this)">
-            <label class="switch-label" id="input-switch-label" for="switch-box" style="color: rgb(176, 167, 212);">Input</label>
-        </div>
-        <table id="color-selector-table">
-            <tr>
-                <th>1</th>
-                <th>2</th>
-                <th>3</th>
-                <th>4</th>
-                <th>5</th>
-                <th>6</th>
-                <th>7</th>
-                <th>8</th>
-                <th>9</th>
-                <th>A</th>
-                <th>B</th>
-                <th>C</th>
-                <th>a</th>
-                <th>b</th>
-                <th>c</th>
-                <th>'</th>
-            </tr>
-            <tr>
-                <td class="color-selector" id="cs-1"></td>
-                <td class="color-selector" id="cs-2"></td>
-                <td class="color-selector" id="cs-3"></td>
-                <td class="color-selector" id="cs-4"></td>
-                <td class="color-selector" id="cs-5"></td>
-                <td class="color-selector" id="cs-6"></td>
-                <td class="color-selector" id="cs-7"></td>
-                <td class="color-selector" id="cs-8"></td>
-                <td class="color-selector" id="cs-9"></td>
-                <td class="color-selector" id="cs-A"></td>
-                <td class="color-selector" id="cs-B"></td>
-                <td class="color-selector" id="cs-C"></td>
-                <td class="color-selector" id="cs-a"></td>
-                <td class="color-selector" id="cs-b"></td>
-                <td class="color-selector" id="cs-c"></td>
-                <td class="color-selector" id="cs-'"></td>
-            </tr>
-        </table>
-        <table id="spacings-color-selector-table">
-            <tr>
-                <th></th>
-                <th>^</th>
-                <th>|</th>
-                <th>.</th>
-                <th>i</th>
-                <th></th>
-            </tr>
-            <tr>
-                <td class="operation-options">
-                    <div class="format-div">
-                        <label class="format-label" style="width: 120px; margin-right:-7px;margin-left:-18px;">Delete Symbol</label>
+        <div id="bottom-container">
+            <div id="side-panel">
+                <label class="switch-label" id="color-switch-label" for="switch-box" style="color: aliceblue;border-color:aliceblue">Color</label>
+                <input type="range" id="switch-box" name="switch-box" min="0" max="1" step="1" value="0" onclick="toggleOnClick(this)" oninput="onToggleUpdate(this)">
+                <label class="switch-label" id="input-switch-label" for="switch-box" style="color: rgb(176, 167, 212);">Input</label>
+            </div>
+            <table id="color-selector-table">
+                <tr>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
+                    <th>6</th>
+                    <th>7</th>
+                    <th>8</th>
+                    <th>9</th>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>C</th>
+                    <th>a</th>
+                    <th>b</th>
+                    <th>c</th>
+                    <th>'</th>
+                </tr>
+                <tr>
+                    <td class="color-selector" id="cs-1"></td>
+                    <td class="color-selector" id="cs-2"></td>
+                    <td class="color-selector" id="cs-3"></td>
+                    <td class="color-selector" id="cs-4"></td>
+                    <td class="color-selector" id="cs-5"></td>
+                    <td class="color-selector" id="cs-6"></td>
+                    <td class="color-selector" id="cs-7"></td>
+                    <td class="color-selector" id="cs-8"></td>
+                    <td class="color-selector" id="cs-9"></td>
+                    <td class="color-selector" id="cs-A"></td>
+                    <td class="color-selector" id="cs-B"></td>
+                    <td class="color-selector" id="cs-C"></td>
+                    <td class="color-selector" id="cs-a"></td>
+                    <td class="color-selector" id="cs-b"></td>
+                    <td class="color-selector" id="cs-c"></td>
+                    <td class="color-selector" id="cs-'"></td>
+                </tr>
+            </table>
+            <table id="spacings-color-selector-table">
+                <tr>
+                    <th></th>
+                    <th>^</th>
+                    <th>|</th>
+                    <th>.</th>
+                    <th>i</th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <td class="operation-options">
                         <a class="btn format-button" id="select-button-back"><i class="fa fa-backward" style="padding-right: 3px;" onclick="undoLastInput()"></i></a>
-                    </div>
-                    <div class="format-div">
-                        <label class="format-label" style="margin-right:-5px;margin-left:-10px;">Delete Glyph</label>
                         <a class="btn format-button" id="select-button-undo"><i class="fa fa-undo" onclick="undoLastGlyph()"></i></a>
-                    </div>
-                    <div class="format-div">
-                        <label class="format-label" style="margin-right:-15px;">Delete Tree</label>
                         <a class="btn format-button" id="select-button-refresh" onclick="refreshGlyph()"><i class="fa fa-refresh"></i></a>
-                    </div>
-                </td>
-                <td class="color-selector" id="cs-^"></td>
-                <td class="color-selector" id="cs-|"></td>
-                <td class="color-selector" id="cs-."></td>
-                <td class="color-selector" id="cs-i"></td>
-                <td class="format-options">
-                    <div class="format-div">
+                    </td>
+                    <td class="color-selector" id="cs-^"></td>
+                    <td class="color-selector" id="cs-|"></td>
+                    <td class="color-selector" id="cs-."></td>
+                    <td class="color-selector" id="cs-i"></td>
+                    <td class="format-options">
                         <a class="btn format-button" id="select-button-plus" onclick="goNextGlyph()"><i class="fa fa-plus"></i></a>
-                        <label class="format-label">Next Glyph</label>
-                    </div>
-                    <div class="format-div">
                         <a class="btn format-button" id="select-button-right" onclick="doBranch()"><i class="fa fa-arrow-right"></i></a>
-                        <label class="format-label">End Branch</label>
-                    </div>
-                    <div class="format-div">
                         <a class="btn format-button" id="select-button-down" onclick="switchSide()"><i class="fa fa-arrow-down"></i></a>
-                        <label class="format-label">Stack Glyph</label>
-                    </div>
-                </td>
-            </tr>
-        </table>
+                    </td>
+                </tr>
+            </table>
 
+        </div>
     </div>
     <script src="common.js"></script>
 </body>
