@@ -47,14 +47,14 @@ body {
 }
 
 #custom-color {
-    max-height: 18px;
-    height: 18px;
+    max-height: 22px;
+    height: 22px;
     width: 0px;
     background-color: rgb(15, 10, 36);
     border: none;
     
     margin-top: 1px;
-    margin-left: 5px;
+    margin-left: -14px;
     visibility: hidden;
     opacity: 0;
 
@@ -221,7 +221,7 @@ canvas {
 }
 
 #bottom-container {
-    position: relative;
+    position: fixed;
     flex: 0 0 auto;
     width:100%;
     left:0;
@@ -233,7 +233,7 @@ canvas {
 .operation-options {
     width: 80px;
     height: 91px;
-    margin-left: -25px;
+    margin-left: -145px;
     display:grid;
     position: absolute;
     align-items: center;
@@ -259,6 +259,19 @@ canvas {
     cursor:pointer;
     pointer-events: none;
 }
+
+.format-div {
+    display: flex;
+}
+
+.format-label {
+    font-family:'Consolas';  
+    color:aliceblue;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 110px;
+}
+
 
 #color-selector-table {
     color:aliceblue;
@@ -320,6 +333,9 @@ html {
 #middle-container {
     flex:1;
     overflow: auto;
+    font-size: large;
+    padding: 2%;
+    font-family: "Consolas";
 }
 
 #flexbox-container {

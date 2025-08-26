@@ -90,18 +90,36 @@
                 </tr>
                 <tr>
                     <td class="operation-options">
-                        <a class="btn format-button" id="select-button-back"><i class="fa fa-backward" style="padding-right: 3px;" onclick="undoLastInput()"></i></a>
-                        <a class="btn format-button" id="select-button-undo"><i class="fa fa-undo" onclick="undoLastGlyph()"></i></a>
-                        <a class="btn format-button" id="select-button-refresh" onclick="refreshGlyph()"><i class="fa fa-refresh"></i></a>
+                        <div class="format-div">
+                            <label class="format-label" style="width: 120px; margin-right:-7px;margin-left:-18px;">Delete Symbol</label>
+                            <a class="btn format-button" id="select-button-back"><i class="fa fa-backward" style="padding-right: 3px;" onclick="undoLastInput()"></i></a>
+                        </div>
+                        <div class="format-div">
+                            <label class="format-label" style="margin-right:-5px;margin-left:-10px;">Delete Glyph</label>
+                            <a class="btn format-button" id="select-button-undo"><i class="fa fa-undo" onclick="undoLastGlyph()"></i></a>
+                        </div>
+                        <div class="format-div">
+                            <label class="format-label" style="margin-right:-15px;">Delete Tree</label>
+                            <a class="btn format-button" id="select-button-refresh" onclick="refreshGlyph()"><i class="fa fa-refresh"></i></a>
+                        </div>
                     </td>
                     <td class="color-selector" id="cs-^"></td>
                     <td class="color-selector" id="cs-|"></td>
                     <td class="color-selector" id="cs-."></td>
                     <td class="color-selector" id="cs-i"></td>
                     <td class="format-options">
-                        <a class="btn format-button" id="select-button-plus" onclick="goNextGlyph()"><i class="fa fa-plus"></i></a>
-                        <a class="btn format-button" id="select-button-right" onclick="doBranch()"><i class="fa fa-arrow-right"></i></a>
-                        <a class="btn format-button" id="select-button-down" onclick="switchSide()"><i class="fa fa-arrow-down"></i></a>
+                        <div class="format-div">
+                            <a class="btn format-button" id="select-button-plus" onclick="goNextGlyph()"><i class="fa fa-plus"></i></a>
+                            <label class="format-label">Next Glyph</label>
+                        </div>
+                        <div class="format-div">
+                            <a class="btn format-button" id="select-button-right" onclick="doBranch()"><i class="fa fa-arrow-right"></i></a>
+                            <label class="format-label">End Branch</label>
+                        </div>
+                        <div class="format-div">
+                            <a class="btn format-button" id="select-button-down" onclick="switchSide()"><i class="fa fa-arrow-down"></i></a>
+                            <label class="format-label">Stack Glyph</label>
+                        </div>
                     </td>
                 </tr>
             </table>
@@ -110,7 +128,3 @@
     </div>
     <script src="common.js"></script>
 </body>
-
-
-
-
