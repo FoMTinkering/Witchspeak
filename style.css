@@ -21,7 +21,7 @@ body {
     justify-content: center;
 }
 
-.checkbox-label {
+.checkbox-label, #readme-link {
     font-family:'Consolas';  
     color:aliceblue;
     padding-left: 5px;
@@ -221,11 +221,10 @@ canvas {
 }
 
 #bottom-container {
-    position: fixed;
     flex: 0 0 auto;
+    padding-top: 20px;
     width:100%;
     left:0;
-    bottom:0;
     font-family:'Consolas';
     background-color: rgb(15, 10, 36);
 }
@@ -318,7 +317,7 @@ input[type="range"]:focus {
 }
 
 html {
-    background-color: rgb(176, 167, 212);
+    background-color: rgb(15, 10, 36);
 }
 
 .input-button {
@@ -330,16 +329,14 @@ html {
     cursor:pointer;
 }
 
-#middle-container {
-    flex:1;
-    overflow: auto;
-    font-size: large;
-    padding: 2%;
-    font-family: "Consolas";
-}
-
 #flexbox-container {
     display: flex;
     flex-direction: column;
     height:100%
+}
+
+#divider {
+    height: 14px;
+    width: 100%;
+    background: rgb(176, 167, 212);
 }
