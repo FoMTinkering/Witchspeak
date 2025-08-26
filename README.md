@@ -1,6 +1,6 @@
-# Witchspeak
+# Witchspeaker
 
-Use our Witchspeak creator tool to write your own Witchspeak sentences.
+Use our Witchspeaker tool to write your own Witchspeak sentences.
 Customize your glyphs, render the sentences with different display modes and save them!
 
 ## Overview
